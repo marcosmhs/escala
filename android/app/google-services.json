@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "283635354027",
+    "firebase_url": "https://that-exotic-bug-escala-default-rtdb.firebaseio.com",
+    "project_id": "that-exotic-bug-escala",
+    "storage_bucket": "that-exotic-bug-escala.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283635354027:android:79eeff71e6f31f777aeaee",
+        "android_client_info": {
+          "package_name": "com.thatexoticbub.escala"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "283635354027-nv1s3n04ngq1bl2sghd6h2dm0flahe5q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7hhFs7XpwHniwzDoltywuU2dWO7h9qIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "283635354027-nv1s3n04ngq1bl2sghd6h2dm0flahe5q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283635354027:android:94ce3b554b6734b87aeaee",
+        "android_client_info": {
+          "package_name": "com.thatexoticbug.escala"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "283635354027-nv1s3n04ngq1bl2sghd6h2dm0flahe5q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7hhFs7XpwHniwzDoltywuU2dWO7h9qIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "283635354027-nv1s3n04ngq1bl2sghd6h2dm0flahe5q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
