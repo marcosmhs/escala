@@ -36,7 +36,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
 
   bool isButtonLineVisible = true;
   String freshGeneratedScheduleId = '';
-  bool releasingSchedule = false;
+  bool _releasingSchedule = false;
   bool _scheduleGenerationFinished = true;
   var _departmentUserAmountText = '';
 
@@ -53,7 +53,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
   List<ScheduleDateUser> _scheduleDateUsers = [];
 
   void _releaseSchedule({required String scheduleId, required ScheduleStatus scheduleStatus}) async {
-    if (!releasingSchedule) {
+    if (!_releasingSchedule) {
       CustomDialog(context: context)
           .confirmationDialog(
               message: scheduleStatus == ScheduleStatus.teamValidation
@@ -61,18 +61,18 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                   : 'Liberar a escala? Depois de liberada ela não poderá ser alterada ou excluída.')
           .then((value) {
         if (value == true) {
-          setState(() => releasingSchedule = true);
+          setState(() => _releasingSchedule = true);
           try {
             Provider.of<ScheduleController>(context, listen: false)
                 .releaseSchedule(scheduleId: scheduleId, scheduleStatus: scheduleStatus)
                 .then((value) {
               Provider.of<ScheduleController>(context, listen: false).getScheduleById(scheduleId).then((value) {
                 setState(() => schedule = value);
-                setState(() => releasingSchedule = false);
+                setState(() => _releasingSchedule = false);
               });
             });
           } catch (e) {
-            setState(() => releasingSchedule = false);
+            setState(() => _releasingSchedule = false);
           }
         }
       });
@@ -133,7 +133,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
         Button(
           label: schedule.id == '' ? 'Gerar escala' : 'Refazer Escala',
           onPressed: _generateSchedule,
-          enabled: schedule.status != ScheduleStatus.released && !releasingSchedule,
+          enabled: schedule.status != ScheduleStatus.released && !_releasingSchedule,
         ),
         Button(
           label: 'Liberar/Finalizar',
@@ -149,7 +149,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: Column(children: [
                       _scheduleOptionsItemStructure(
-                        title: 'Permitir que as pessoas alocas nesta área/setor possam validar a escala e sugerir alterações',
+                        title: 'Permitir que as pessoas alocadas nesta área/setor possam validar a escala e sugerir alterações',
                         shadowColor: Theme.of(context).primaryColor,
                         children: [
                           ElevatedButton(
@@ -184,7 +184,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
               },
             )
           },
-          enabled: schedule.status != ScheduleStatus.released && !releasingSchedule,
+          enabled: schedule.status != ScheduleStatus.released && !_releasingSchedule,
         ),
       ],
     );
@@ -380,16 +380,16 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                   ],
                 ),
                 // button line
-                if (_scheduleGenerationFinished)
+                if (_scheduleGenerationFinished || !_releasingSchedule)
                   _scheduleOptionsItemStructure(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [_buttonsLine()],
                   ),
                 // generation indicator
-                if (!_scheduleGenerationFinished)
+                if (!_scheduleGenerationFinished || _releasingSchedule)
                   _scheduleOptionsItemStructure(
                     children: [
-                      const Text('Gerando a escala'),
+                      Text(_releasingSchedule ? 'Liberando escala' : 'Gerando a escala'),
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(

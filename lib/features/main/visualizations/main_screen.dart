@@ -87,27 +87,17 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
     );
   }
 
-  //void _showUserList({required BuildContext context, required List<ScheduleDateUser> userList}) {
   void _showUserList({required BuildContext context, required String scheduleId, required DateTime date}) {
     Provider.of<ScheduleController>(context, listen: false)
         .getUsersOnScheduleDate(departmentId: _user.departmentId, scheduleId: scheduleId, date: date)
         .then(
       (list) {
         List<ScheduleDateUser> userList = list.where((u) => u.user.id != _user.id).toList();
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
-        userList.addAll(userList.where((u) => u.user.id != _user.id).toList());
         showModalBottomSheet(
           context: context,
           isDismissible: true,
           builder: (context) => ScheduleDateUserList(
-            scheduleDateUser: userList, //userList
+            scheduleDateUser: userList,
             institution: _institution,
           ),
         ).then((value) => _showingUserList = false);
@@ -152,8 +142,11 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
             return const Center(child: CircularProgressIndicator());
           }
           // transforma o retorno do snapshot em uma lista de categorias
-
-          List<ScheduleDate> scheduleDates = snapshot.data!.docs.map((e) => ScheduleDate.fromDocument(e)).toList();
+          List<ScheduleDate> scheduleDates = snapshot.data!.docs
+              .map((e) => ScheduleDate.fromDocument(e))
+              .toList()
+              .where((scheduleDate) => scheduleDate.status == _selectedScheduleStatusType)
+              .toList();
 
           return ConstrainedBox(
             constraints: BoxConstraints.tightFor(height: MediaQuery.of(context).size.height * 0.75),
