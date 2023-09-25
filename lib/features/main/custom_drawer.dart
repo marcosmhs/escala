@@ -4,8 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:provider/provider.dart';
 
-class CustomDrawer extends StatelessWidget {
+import 'package:package_info_plus/package_info_plus.dart';
+
+class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
+
+  @override
+  State<CustomDrawer> createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  PackageInfo _packageInfo = PackageInfo(
+    appName: '',
+    packageName: '',
+    version: '',
+    buildNumber: '',
+    buildSignature: '',
+    installerStore: '',
+  );
 
   Column _option({
     required BuildContext context,
@@ -17,21 +33,31 @@ class CustomDrawer extends StatelessWidget {
   }) {
     return Column(
       children: [
-        //const Divider(height: 0),
         ListTile(
           leading: icon,
           title: Text(text),
           onTap: route == ''
               ? onTap
               : () {
-                  // fecha o drawer
                   Navigator.of(context).pop();
-                  // abre a nova tela
                   Navigator.pushNamed(context, route, arguments: args);
                 },
         ),
       ],
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _packageInfo = info;
+    });
   }
 
   @override
@@ -102,6 +128,10 @@ class CustomDrawer extends StatelessWidget {
               );
             },
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text('Versão: ${_packageInfo.version}.${_packageInfo.buildNumber}'),
+          )
         ],
       ),
     );
