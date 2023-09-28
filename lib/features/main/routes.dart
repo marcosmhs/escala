@@ -10,4 +10,5 @@ class Routes {
   static const scheduleForm = '/screens/schedule/schedule_form';
   static const departmentScreen = '/screens/department/department_screen';
   static const departmentForm = '/screens/department/department_form';
+  static const removeInstitution = '/features/institution/visualizations/institution_remove';
 }

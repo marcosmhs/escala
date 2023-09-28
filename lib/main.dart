@@ -6,6 +6,7 @@ import 'package:escala/features/department/visualizations/department_screen.dart
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/institution/visualizations/institution_config_form.dart';
 import 'package:escala/features/institution/visualizations/institution_form.dart';
+import 'package:escala/features/institution/visualizations/institution_remove_screen.dart';
 import 'package:escala/features/main/visualizations/landing_screen.dart';
 import 'package:escala/features/main/visualizations/main_screen.dart';
 import 'package:escala/features/main/visualizations/screen_not_found.dart';
@@ -123,6 +124,7 @@ class _Home extends State<Escala> {
           Routes.scheduleScreen: (ctx) => const ScheduleScreen(),
           Routes.departmentScreen: (ctx) => const DepartmentScreen(),
           Routes.departmentForm: (ctx) => const DepartmentForm(),
+          Routes.removeInstitution: (ctx) => const InstitutionRemoveScreen(),
         },
         initialRoute: Routes.landingScreen,
         // Executado quando uma tela não é encontrada

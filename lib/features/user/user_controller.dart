@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala/components/util/custom_return.dart';
 import 'package:escala/components/util/uid_generator.dart';
-import 'package:escala/components/util/util.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/institution/institution_controller.dart';
@@ -23,17 +22,9 @@ class UserController with ChangeNotifier {
     _currentUserDepartment = Department();
   }
 
-  User get currentUser {
-    return User.fromMap(_currentUser.toMap());
-  }
-
-  Department get currentUserDepartment {
-    return Department.fromMap(_currentUserDepartment.toMap());
-  }
-
-  Institution get currentInstitution {
-    return Institution.fromMap(_currentInstitution.toMap());
-  }
+  User get currentUser => User.fromMap(_currentUser.toMap());
+  Department get currentUserDepartment => Department.fromMap(_currentUserDepartment.toMap());
+  Institution get currentInstitution => Institution.fromMap(_currentInstitution.toMap());
 
   Future<void> tryAutoLogin() async {
     if (currentUser.registration.isEmpty) {
@@ -53,6 +44,7 @@ class UserController with ChangeNotifier {
       if (temporaryUserData.password != user.password) return CustomReturn.error('Senha inválida');
       if (!temporaryUserData.active) return CustomReturn.error('Usuário Inativo');
       if (temporaryUserData.institutionId.isEmpty) return CustomReturn.error('Usuário sem instituição');
+      if (temporaryUserData.exclusionDate != null) return CustomReturn.error('Instituição do usuário em processo de remoção');
 
       var institutionController = InstitutionController(_currentUser);
 
@@ -123,24 +115,12 @@ class UserController with ChangeNotifier {
 
   Future<CustomReturn> create({required User user}) async {
     try {
-      //final credential = await fb_auth.FirebaseAuth.instance.createUserWithEmailAndPassword(
-      //  email: user.email,
-      //  password: user.password,
-      //);
-
-      //if (credential.user == null) {
-      //  return CustomReturn.error('Falha no cadastro do usuário');
-      //}
-
-      // se usuário foi cadastrado
-      //if (credential.user != null && credential.user?.uid != null) {
       var checkUserRegistration = await userRegistrationExists(registratiton: user.registration, id: user.id);
       if (checkUserRegistration) {
         return CustomReturn.error("Matrícula ${user.registration} já existe");
       }
 
       user.id = UidGenerator.firestoreUid;
-      user.password = Util.encrypt(user.password);
       await FirebaseFirestore.instance.collection(_userInformationCollection).doc(user.id).set(user.toMap());
       //}
       return CustomReturn.sucess;
@@ -184,10 +164,14 @@ class UserController with ChangeNotifier {
     }
   }
 
-  Stream<QuerySnapshot<Object?>> getUsers({String registration = '', String departmentId = '', bool onlyActiveUsers = false}) {
+  Stream<QuerySnapshot<Object?>> getUsers(
+      {String registration = '', String departmentId = '', bool onlyActiveUsers = false, String institutionId = ''}) {
     var collection = FirebaseFirestore.instance.collection(_userInformationCollection);
 
-    var userQuery = collection.where("institutionId", isEqualTo: _currentInstitution.id);
+    var userQuery = collection.where(
+      "institutionId",
+      isEqualTo: institutionId.isNotEmpty ? institutionId : _currentInstitution.id,
+    );
 
     if (registration.isNotEmpty) userQuery = userQuery.where("registration", isEqualTo: registration);
     if (departmentId.isNotEmpty) userQuery = userQuery.where("departmentId", isEqualTo: departmentId);
@@ -204,13 +188,27 @@ class UserController with ChangeNotifier {
       final users = await userQuery.get();
       final dataList = users.docs.map((doc) => doc.data()).toList();
 
+      return User.fromMap(dataList.first);
+    } catch (e) {
+      return User();
+    }
+  }
+
+  Future<List<User>> getInstitutionUsers({required String institutionId}) async {
+    try {
+      var collection = FirebaseFirestore.instance.collection(_userInformationCollection);
+      var userQuery = collection.where("institutionId", isEqualTo: institutionId);
+
+      final users = await userQuery.get();
+      final dataList = users.docs.map((doc) => doc.data()).toList();
+
       final List<User> r = [];
       for (var user in dataList) {
         r.add(User.fromMap(user));
       }
-      return r.first;
+      return r;
     } catch (e) {
-      return User();
+      return [];
     }
   }
 

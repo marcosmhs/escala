@@ -17,6 +17,7 @@ class User {
   late int weekHours;
   late int dailyHours;
   late DateTime? lastScheduleDate;
+  late DateTime? exclusionDate;
 
   User(
       {this.id = '',
@@ -32,7 +33,8 @@ class User {
       this.institutionId = '',
       this.departmentId = '',
       this.needChangePassword = true,
-      this.lastScheduleDate});
+      this.lastScheduleDate,
+      this.exclusionDate});
 
   factory User.fromDocument(DocumentSnapshot doc) {
     final data = doc.data()! as Map<String, dynamic>;
@@ -57,6 +59,7 @@ class User {
       departmentId: map['departmentId'] ?? '',
       needChangePassword: map['needChangePassword'] ?? true,
       lastScheduleDate: map['lastScheduleDate'] == null ? null : DateTime.tryParse(map['lastScheduleDate']),
+      exclusionDate: map['exclusionDate'] == null ? null : DateTime.tryParse(map['exclusionDate']),
     );
     return u;
   }
@@ -78,6 +81,7 @@ class User {
       'departmentId': departmentId,
       'needChangePassword': needChangePassword,
       'lastScheduleDate': lastScheduleDate.toString(),
+      'exclusionDate': exclusionDate.toString(),
     };
 
     return r;

@@ -13,6 +13,7 @@ class Institution {
 
   late DateTime? creationDate;
   late DateTime? updateDate;
+  late DateTime? exclusionDate;
 
   Institution({
     this.id = '',
@@ -24,6 +25,7 @@ class Institution {
     this.vacationColor = Colors.black,
     this.creationDate,
     this.updateDate,
+    this.exclusionDate,
   });
 
   static Institution fromMap(Map<String, dynamic> map) {
@@ -39,6 +41,7 @@ class Institution {
       vacationColor: map['vacationColor'] == null ? Colors.black : Color(map['vacationColor'] ?? ''),
       creationDate: map['creationDate'] == null ? DateTime.now() : DateTime.tryParse(map['creationDate']),
       updateDate: map['updateDate'] == null ? DateTime.now() : DateTime.tryParse(map['updateDate']),
+      exclusionDate: map['exclusionDate'] == null ? DateTime.now() : DateTime.tryParse(map['exclusionDate']),
     );
     return i;
   }
@@ -55,6 +58,7 @@ class Institution {
       'vacationColor': vacationColor.value,
       'creationDate': creationDate.toString(),
       'updateDate': updateDate.toString(),
+      'exclusionDate': exclusionDate.toString(),
     };
 
     return r;

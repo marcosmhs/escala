@@ -1,7 +1,7 @@
 name: escala
 description: APP para a geração e compartilhamento de escalas de trabalho.
 publish_to: 'none'
-version: 0.1.1+25
+version: 0.1.2+26
 
 environment:
   sdk: '>=3.1.0 <4.0.0'

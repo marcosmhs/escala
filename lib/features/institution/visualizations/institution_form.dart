@@ -96,76 +96,83 @@ class _InstitutionFormState extends State<InstitutionForm> {
 
     return CustomScaffold(
       title: 'Instituição',
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                if (_firstAccess)
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text("Informe os dados básicos de sua instituição"),
-                  ),
-                // name
-                CustomTextEdit(
-                  context: context,
-                  controller: _nameController,
-                  labelText: 'Nome',
-                  hintText: 'Nome da instituição',
-                  onSave: (value) => institution.name = value ?? '',
-                  prefixIcon: Icons.store,
-                  textInputAction: TextInputAction.next,
-                  focusNode: _nameFocus,
-                  validator: (value) {
-                    final finalValue = value ?? '';
-                    if (finalValue.trim().isEmpty) return 'O nome deve ser informado';
-                    return null;
-                  },
+      body: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              if (_firstAccess)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("Informe os dados básicos de sua instituição"),
                 ),
-                // Active
-                CustomCheckBox(
-                  context: context,
-                  value: _firstAccess ? true : institution.active,
-                  title: 'Instituição ativa',
-                  onChanged: (value) => setState(() {
-                    if (value == true) {
-                      setState(() => institution.active = true);
-                    } else {
-                      CustomDialog(context: context)
-                          .confirmationDialog(
-                              message: 'Se desativar a instituição ninguém mais poderá acessar suas escalas. Deseja continuar?')
-                          .then(
-                            (confirmationValue) => {if (confirmationValue == true) setState(() => institution.active = false)},
-                          );
-                    }
-                  }),
-                  enabled: !_firstAccess,
-                ),
+              // name
+              CustomTextEdit(
+                context: context,
+                controller: _nameController,
+                labelText: 'Nome',
+                hintText: 'Nome da instituição',
+                onSave: (value) => institution.name = value ?? '',
+                prefixIcon: Icons.store,
+                textInputAction: TextInputAction.next,
+                focusNode: _nameFocus,
+                validator: (value) {
+                  final finalValue = value ?? '';
+                  if (finalValue.trim().isEmpty) return 'O nome deve ser informado';
+                  return null;
+                },
+              ),
+              // Active
+              CustomCheckBox(
+                context: context,
+                value: _firstAccess ? true : institution.active,
+                title: 'Instituição ativa',
+                onChanged: (value) => setState(() {
+                  if (value == true) {
+                    setState(() => institution.active = true);
+                  } else {
+                    CustomDialog(context: context)
+                        .confirmationDialog(
+                            message: 'Se desativar a instituição ninguém mais poderá acessar suas escalas. Deseja continuar?')
+                        .then(
+                          (confirmationValue) => {if (confirmationValue == true) setState(() => institution.active = false)},
+                        );
+                  }
+                }),
+                enabled: !_firstAccess,
+              ),
 
-                if (_firstAccess) const SizedBox(height: 5),
-                ButtonsLine(
-                  buttons: [
-                    Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
-                    Button(
-                      label: institution.id == '' ? 'Cadastrar nova instituição' : 'Altera dados da instituição',
-                      onPressed: _submit,
-                    ),
-                  ],
-                ),
-
-                if (_firstAccess) const SizedBox(height: 10),
-                if (_firstAccess)
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Após o cadastro você será direcionado para a tela de cadatro dos seus dados",
-                      textAlign: TextAlign.center,
-                    ),
+              if (_firstAccess) const SizedBox(height: 5),
+              ButtonsLine(
+                buttons: [
+                  Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
+                  Button(
+                    label: institution.id == '' ? 'Cadastrar nova instituição' : 'Altera dados da instituição',
+                    onPressed: _submit,
                   ),
-              ],
-            ),
+                ],
+              ),
+
+              if (_firstAccess) const SizedBox(height: 10),
+              if (_firstAccess)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    "Após o cadastro você será direcionado para a tela de cadatro dos seus dados",
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              const Spacer(),
+              if (!_firstAccess)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextButton(
+                    child: const Text('Remover dados da instituição'),
+                    onPressed: () => Navigator.of(context).pushNamed(Routes.removeInstitution),
+                  ),
+                )
+            ],
           ),
         ),
       ),
