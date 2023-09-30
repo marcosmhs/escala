@@ -6,16 +6,17 @@ import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/schedule/schedule_controller.dart';
 import 'package:escala/features/schedule/models/schedule.dart';
 import 'package:escala/features/main/routes.dart';
+import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:provider/provider.dart';
-
 class ScheduleListCard extends StatefulWidget {
   final Schedule schedule;
+  final User user;
   const ScheduleListCard({
     required this.schedule,
-    Key? key,
+    required this.user,
+    Key? key, 
   }) : super(key: key);
 
   @override
@@ -37,7 +38,7 @@ class _ScheduleListCardState extends State<ScheduleListCard> {
     }
 
     // ignore: use_build_context_synchronously
-    var retorno = await Provider.of<ScheduleController>(context, listen: false).deleteSchedule(schedule: widget.schedule);
+    var retorno = await ScheduleController(widget.user).deleteSchedule(schedule: widget.schedule);
     if (retorno.returnType == ReturnType.sucess) {
       // ignore: use_build_context_synchronously
       CustomMessage(
@@ -60,7 +61,7 @@ class _ScheduleListCardState extends State<ScheduleListCard> {
   @override
   Widget build(BuildContext context) {
     if (_initializing) {
-      Provider.of<DepartmentController>(context, listen: false)
+      DepartmentController(widget.user)
           .getDepartmentById(departmentId: widget.schedule.departmentId)
           .then((value) => setState(() => _department = value));
       _initializing = false;
@@ -68,6 +69,7 @@ class _ScheduleListCardState extends State<ScheduleListCard> {
 
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, Routes.scheduleForm, arguments: {
+        'user': widget.user,
         'schedule': widget.schedule,
         'department': _department,
       }),

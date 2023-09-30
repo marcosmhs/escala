@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 class UserListCard extends StatefulWidget {
   final User user;
+  final User userManager;
   final bool cropped;
   final double? fixedWidth;
   const UserListCard({
     Key? key,
     required this.user,
+    required this.userManager,
     this.cropped = false,
     this.fixedWidth,
   }) : super(key: key);
@@ -51,7 +53,10 @@ class _UserListCardState extends State<UserListCard> {
         ),
         trailing: IconButton(
           icon: const Icon(Icons.edit),
-          onPressed: () => Navigator.pushNamed(context, Routes.userForm, arguments: {'user': widget.user}),
+          onPressed: () => Navigator.of(context).pushNamed(Routes.userForm, arguments: {
+            'user': widget.user,
+            'userManager': widget.userManager,
+          }),
         ),
       ),
     );

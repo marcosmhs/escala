@@ -1,16 +1,10 @@
 import 'package:escala/features/main/visualizations/main_screen.dart';
-import 'package:escala/features/user/user_controller.dart';
 import 'package:escala/features/user/visualization/login_screen.dart';
+import 'package:escala/hive_controller.dart';
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
-import 'package:provider/provider.dart';
 
 class LandingScreen extends StatelessWidget {
   const LandingScreen({Key? key}) : super(key: key);
-
-  //Widget _autoLogin() {
-  //  return const AuthScreen(screenMode: ScreenMode.signIn);
-  //}
 
   Widget _errorScreen({required String errorMessage}) {
     return Scaffold(
@@ -34,10 +28,10 @@ class LandingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    UserController userController = Provider.of(context);
+    var hiveController = HiveController();
 
     return FutureBuilder(
-      future: userController.tryAutoLogin(),
+      future: hiveController.chechLocalData(),
       builder: (ctx, snapshot) {
         // enquanto está carregando
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -49,8 +43,7 @@ class LandingScreen extends StatelessWidget {
             // ao final do processo
           } else {
             // irá avaliar se o usuário possui login ou não
-            var currentUser = userController.currentUser;
-            return currentUser.id.isEmpty ? const LoginScreen() : const MainScreen();
+            return hiveController.localUser.id.isEmpty ? const LoginScreen() : MainScreen(user: hiveController.localUser);
           }
         }
       },

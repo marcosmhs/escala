@@ -5,13 +5,15 @@ import 'package:escala/components/util/custom_return.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/main/routes.dart';
-import 'package:provider/provider.dart';
+import 'package:escala/features/user/models/user.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 enum ScreenMode { form, list, showItem }
 
 class DepartmentCard extends StatefulWidget {
   final Department department;
+  final User user;
   final ScreenMode screenMode;
   final bool cropped;
   final double elevation;
@@ -22,6 +24,7 @@ class DepartmentCard extends StatefulWidget {
     this.screenMode = ScreenMode.form,
     this.cropped = false,
     this.elevation = 1,
+    required this.user,
   }) : super(key: key);
 
   Widget _structure({Widget? leading, Widget? title, Widget? subtitle, Widget? trailing}) {
@@ -40,10 +43,12 @@ class DepartmentCard extends StatefulWidget {
 
   Widget emptyCard(BuildContext context) {
     return Container(
-      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 28),
+      constraints: kIsWeb
+          ? BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.2)
+          : BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
       child: _structure(
         leading: Icon(Department.icon, size: 30),
-        title: const Text('Selecione um departamento'),
+        title: const Text('Selecione uma área/setor'),
       ),
     );
   }
@@ -53,8 +58,8 @@ class DepartmentCard extends StatefulWidget {
 }
 
 class _DepartmentCardState extends State<DepartmentCard> {
-  void _removeEntryType() async {
-    var retorno = await Provider.of<DepartmentController>(context, listen: false).delete(
+  void _delete({required User user}) async {
+    var retorno = await DepartmentController(user).delete(
       department: widget.department,
     );
 
@@ -116,7 +121,7 @@ class _DepartmentCardState extends State<DepartmentCard> {
                             );
 
                             if (deletedConfirmed ?? false) {
-                              _removeEntryType();
+                              _delete(user: widget.user);
                             } else {
                               // ignore: use_build_context_synchronously
                               CustomMessage(

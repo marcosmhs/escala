@@ -6,9 +6,8 @@ import 'package:escala/components/visual_elements/custom_checkbox.dart';
 import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
+import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// ignore: depend_on_referenced_packages
 
 class DepartmentForm extends StatefulWidget {
   const DepartmentForm({super.key});
@@ -25,6 +24,8 @@ class _DepartmentFormState extends State<DepartmentForm> {
   final _formKey = GlobalKey<FormState>();
   bool _saveingData = false;
 
+  var _user = User();
+
   void _submit() async {
     if (_saveingData) return;
 
@@ -34,10 +35,9 @@ class _DepartmentFormState extends State<DepartmentForm> {
     } else {
       // salva os dados
       _formKey.currentState?.save();
-      DepartmentController userController = Provider.of(context, listen: false);
       CustomReturn retorno;
       try {
-        retorno = await userController.save(department: _department);
+        retorno = await DepartmentController(_user).save(department: _department);
 
         if (retorno.returnType == ReturnType.sucess) {
           // ignore: use_build_context_synchronously
@@ -59,6 +59,10 @@ class _DepartmentFormState extends State<DepartmentForm> {
   Widget build(BuildContext context) {
     if (_initializing) {
       final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+
+      _user = arguments['user'] ?? User();
+      _user = User.fromMap(_user.toMap());
+
       _department = arguments['department'] ?? Department();
       _department = Department.fromMap(_department.toMap());
       _nameController.text = _department.name;
@@ -68,6 +72,7 @@ class _DepartmentFormState extends State<DepartmentForm> {
 
     return CustomScaffold(
       title: _department.id == "" ? 'Nova área/setor' : 'Alterar seus área/setor',
+      responsive: true,
       body: SingleChildScrollView(
         child: Padding(
             padding: const EdgeInsets.all(5.0),

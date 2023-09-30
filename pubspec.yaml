@@ -1,7 +1,7 @@
 name: escala
 description: APP para a geração e compartilhamento de escalas de trabalho.
 publish_to: 'none'
-version: 0.1.2+26
+version: 0.2.1+38
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
@@ -30,6 +30,11 @@ dependencies:
   
   flutter_launcher_icons: ^0.13.0
   package_info_plus: ^4.1.0
+
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0    
+  hive_generator: ^1.1.3 # needed for HIVE
+  universal_html: ^2.2.4
 
 flutter_launcher_icons:
   android: true

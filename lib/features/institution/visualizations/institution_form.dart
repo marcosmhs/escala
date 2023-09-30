@@ -8,10 +8,8 @@ import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/main/routes.dart';
-import 'package:escala/features/user/user_controller.dart';
+import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// ignore: depend_on_referenced_packages
 
 class InstitutionForm extends StatefulWidget {
   const InstitutionForm({super.key});
@@ -29,7 +27,8 @@ class _InstitutionFormState extends State<InstitutionForm> {
   bool _initializing = true;
   bool _firstAccess = false;
 
-  var institution = Institution();
+  var _institution = Institution();
+  var _user = User();
 
   void _submit() async {
     if (_saveingData) return;
@@ -40,11 +39,10 @@ class _InstitutionFormState extends State<InstitutionForm> {
     } else {
       // salva os dados
       _formKey.currentState?.save();
-      InstitutionController institutionController = Provider.of(context, listen: false);
       CustomReturn retorno;
       try {
-        if (institution.id.isEmpty) {
-          retorno = await institutionController.create(institution: institution);
+        if (_institution.id.isEmpty) {
+          retorno = await InstitutionController(_user).create(institution: _institution);
           if (retorno.returnType == ReturnType.sucess) {
             // ignore: use_build_context_synchronously
             CustomMessage.sucess(context, message: 'Instituição criado com sucesso');
@@ -55,7 +53,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                 Navigator.pushReplacementNamed(
                   context,
                   Routes.userForm,
-                  arguments: {'firstAccessInstitution': institutionController.currentInstitution},
+                  arguments: {'firstAccessInstitution': _institution},
                 );
               } else {
                 // ignore: use_build_context_synchronously
@@ -64,7 +62,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
             }
           }
         } else {
-          retorno = await institutionController.update(institution: institution);
+          retorno = await InstitutionController(_user).update(institution: _institution);
           // ignore: use_build_context_synchronously
           Navigator.of(context).pop();
         }
@@ -86,15 +84,23 @@ class _InstitutionFormState extends State<InstitutionForm> {
       final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
       _firstAccess = arguments['firstAccess'] ?? false;
 
+      _user = arguments['user'] ?? User();
+      _user = User.fromMap(_user.toMap());
+
       if (!_firstAccess) {
-        institution = Provider.of<UserController>(context, listen: false).currentInstitution;
-        _nameController.text = institution.name;
+        InstitutionController(_user).getInstitutionFromId(institutionId: _user.institutionId).then((institution) {
+          setState(() {
+            _institution = institution;
+            _nameController.text = _institution.name;
+          });
+        });
       }
 
       _initializing = false;
     }
 
     return CustomScaffold(
+      responsive: true,
       title: 'Instituição',
       body: Padding(
         padding: const EdgeInsets.all(5.0),
@@ -113,7 +119,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                 controller: _nameController,
                 labelText: 'Nome',
                 hintText: 'Nome da instituição',
-                onSave: (value) => institution.name = value ?? '',
+                onSave: (value) => _institution.name = value ?? '',
                 prefixIcon: Icons.store,
                 textInputAction: TextInputAction.next,
                 focusNode: _nameFocus,
@@ -126,17 +132,17 @@ class _InstitutionFormState extends State<InstitutionForm> {
               // Active
               CustomCheckBox(
                 context: context,
-                value: _firstAccess ? true : institution.active,
+                value: _firstAccess ? true : _institution.active,
                 title: 'Instituição ativa',
                 onChanged: (value) => setState(() {
                   if (value == true) {
-                    setState(() => institution.active = true);
+                    setState(() => _institution.active = true);
                   } else {
                     CustomDialog(context: context)
                         .confirmationDialog(
                             message: 'Se desativar a instituição ninguém mais poderá acessar suas escalas. Deseja continuar?')
                         .then(
-                          (confirmationValue) => {if (confirmationValue == true) setState(() => institution.active = false)},
+                          (confirmationValue) => {if (confirmationValue == true) setState(() => _institution.active = false)},
                         );
                   }
                 }),
@@ -148,7 +154,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                 buttons: [
                   Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
                   Button(
-                    label: institution.id == '' ? 'Cadastrar nova instituição' : 'Altera dados da instituição',
+                    label: _institution.id == '' ? 'Cadastrar nova instituição' : 'Altera dados da instituição',
                     onPressed: _submit,
                   ),
                 ],
@@ -169,7 +175,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton(
                     child: const Text('Remover dados da instituição'),
-                    onPressed: () => Navigator.of(context).pushNamed(Routes.removeInstitution),
+                    onPressed: () => Navigator.of(context).pushNamed(Routes.removeInstitution, arguments: {'user': _user}),
                   ),
                 )
             ],

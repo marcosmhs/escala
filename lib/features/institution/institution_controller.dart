@@ -19,9 +19,7 @@ class InstitutionController with ChangeNotifier {
     _currentInstitution = Institution();
   }
 
-  Institution get currentInstitution {
-    return Institution.fromMap(_currentInstitution.toMap());
-  }
+  Institution get currentInstitution => Institution.fromMap(_currentInstitution.toMap());
 
   Future<CustomReturn> fillCurrentInstitution({required String institutionId}) async {
     final institutionDataRef = await FirebaseFirestore.instance.collection(_institutionCollection).doc(institutionId).get();
@@ -34,6 +32,13 @@ class InstitutionController with ChangeNotifier {
     _currentInstitution = Institution.fromMap(data);
 
     return CustomReturn.sucess;
+  }
+
+  Future<Institution> getInstitutionFromId({required String institutionId}) async {
+    final institutionDataRef = await FirebaseFirestore.instance.collection(_institutionCollection).doc(institutionId).get();
+    final data = institutionDataRef.data();
+
+    return data == null ? Institution() : Institution.fromMap(data);
   }
 
   Future<CustomReturn> create({required Institution institution}) async {
@@ -72,7 +77,7 @@ class InstitutionController with ChangeNotifier {
     }
   }
 
-  Future<CustomReturn> markInstitutionForExclusion({required Institution institution}) async {
+  Future<CustomReturn> markInstitutionForExclusion({required Institution institution, required User user}) async {
     //getUsers para percorrer os usuários e marcar para exclusão
     try {
       var userController = UserController();
@@ -81,7 +86,7 @@ class InstitutionController with ChangeNotifier {
 
       for (var user in users) {
         user.exclusionDate = DateTime.now();
-        userController.update(user: user);
+        userController.update(user: user, loggedUser: user);
       }
 
       institution.exclusionDate = DateTime.now();

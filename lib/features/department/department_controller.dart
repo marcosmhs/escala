@@ -11,9 +11,11 @@ class DepartmentController with ChangeNotifier {
   final String _departmentCollection = 'department';
   final String _institutionCollection = 'institution';
 
-  final User currentUser;
+  late User _user;
 
-  DepartmentController(this.currentUser);
+  DepartmentController(User user) {
+    _user = user;
+  }
 
   // ------------------------------------------------------------------------------
   // CRUD Schedule
@@ -26,7 +28,7 @@ class DepartmentController with ChangeNotifier {
   Future<CustomReturn> _add({required Department department}) async {
     try {
       department.id = UidGenerator.firestoreUid;
-      department.institutionId = department.institutionId.isNotEmpty ? department.institutionId : currentUser.institutionId;
+      department.institutionId = department.institutionId.isNotEmpty ? department.institutionId : _user.institutionId;
       department.creationDate = DateTime.now();
       await FirebaseFirestore.instance
           .collection(_institutionCollection)
@@ -47,7 +49,7 @@ class DepartmentController with ChangeNotifier {
       department.updateDate = DateTime.now();
       await FirebaseFirestore.instance
           .collection(_institutionCollection)
-          .doc(currentUser.institutionId)
+          .doc(_user.institutionId)
           .collection(_departmentCollection)
           .doc(department.id)
           .update(department.toMap());
@@ -63,7 +65,7 @@ class DepartmentController with ChangeNotifier {
     try {
       await FirebaseFirestore.instance
           .collection(_institutionCollection)
-          .doc(currentUser.institutionId)
+          .doc(_user.institutionId)
           .collection(_departmentCollection)
           .doc(department.id)
           .delete();
@@ -78,7 +80,7 @@ class DepartmentController with ChangeNotifier {
   Stream<QuerySnapshot<Object?>> getDepartments() {
     return FirebaseFirestore.instance
         .collection(_institutionCollection)
-        .doc(currentUser.institutionId)
+        .doc(_user.institutionId)
         .collection(_departmentCollection)
         .snapshots();
   }
@@ -87,7 +89,7 @@ class DepartmentController with ChangeNotifier {
     try {
       var query = FirebaseFirestore.instance
           .collection(_institutionCollection)
-          .doc(currentUser.institutionId)
+          .doc(_user.institutionId)
           .collection(_departmentCollection);
 
       final departments = await query.get();
@@ -107,7 +109,7 @@ class DepartmentController with ChangeNotifier {
     try {
       var query = FirebaseFirestore.instance
           .collection(_institutionCollection)
-          .doc(institutionId.isNotEmpty ? institutionId : currentUser.institutionId)
+          .doc(institutionId.isNotEmpty ? institutionId : _user.institutionId)
           .collection(_departmentCollection)
           .where('id', isEqualTo: departmentId);
 

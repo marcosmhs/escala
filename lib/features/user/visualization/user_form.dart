@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:escala/components/messaging/custom_message.dart';
 import 'package:escala/components/screen_elements/custom_scaffold.dart';
 import 'package:escala/components/util/custom_return.dart';
@@ -14,9 +16,8 @@ import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/user/user_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-// ignore: depend_on_referenced_packages
 
 class UserForm extends StatefulWidget {
   const UserForm({super.key});
@@ -46,6 +47,7 @@ class _UserFormState extends State<UserForm> {
   var _initializing = true;
 
   var _user = User();
+  var _userManager = User();
   late Institution? _firstAccessInstitution;
 
   List<bool> _selectedGender = [true, false];
@@ -69,32 +71,26 @@ class _UserFormState extends State<UserForm> {
     } else {
       // salva os dados
       _formKey.currentState?.save();
-      UserController userController = Provider.of(context, listen: false);
+      var userController = UserController();
       CustomReturn retorno;
       try {
         if (_user.id.isEmpty) {
-          _user.institutionId = _firstAccessInstitution != null
-              ? _firstAccessInstitution!.id
-              : Provider.of<UserController>(context, listen: false).currentInstitution.id;
+          _user.institutionId = _firstAccessInstitution != null ? _firstAccessInstitution!.id : _userManager.id;
 
           retorno = await userController.create(user: _user);
           if (retorno.returnType == ReturnType.sucess) {
-            // ignore: use_build_context_synchronously
             CustomMessage.sucess(context, message: 'Login criado com sucesso');
-            // ignore: use_build_context_synchronously
             Navigator.of(context).pop();
           }
         } else {
-          retorno = await userController.update(user: _user);
+          retorno = await userController.update(user: _user, loggedUser: _user);
           if (retorno.returnType == ReturnType.sucess) {
-            // ignore: use_build_context_synchronously
             Navigator.of(context).pop();
           }
         }
 
         // se houve um erro no login ou no cadastro exibe o erro
         if (retorno.returnType == ReturnType.error) {
-          // ignore: use_build_context_synchronously
           CustomMessage.error(context, message: retorno.message);
         }
       } finally {
@@ -123,7 +119,7 @@ class _UserFormState extends State<UserForm> {
               },
               children: [
                 SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.3,
+                    width: MediaQuery.of(context).size.width * 0.2,
                     child: Text(
                       'Feminino',
                       textAlign: TextAlign.center,
@@ -132,7 +128,7 @@ class _UserFormState extends State<UserForm> {
                           : TextStyle(color: Theme.of(context).primaryColor),
                     )),
                 SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.3,
+                    width: MediaQuery.of(context).size.width * 0.2,
                     child: Text(
                       'Masculino',
                       textAlign: TextAlign.center,
@@ -153,6 +149,10 @@ class _UserFormState extends State<UserForm> {
       final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
       _user = arguments['user'] ?? User();
       _user = User.fromMap(_user.toMap());
+
+      _userManager = arguments['userManager'] ?? User();
+      _userManager = User.fromMap(_userManager.toMap());
+
       _firstAccessInstitution = arguments['firstAccessInstitution'];
 
       if (_user.registration.isNotEmpty) {
@@ -160,12 +160,10 @@ class _UserFormState extends State<UserForm> {
         _nameController.text = _user.name;
         _weekHoursController.text = _user.weekHours.toString();
         _dailyHoursController.text = _user.dailyHours.toString();
-        Provider.of<DepartmentController>(context, listen: false)
-            .getDepartmentById(departmentId: _user.departmentId)
-            .then((value) => setState(() {
-                  _department = value;
-                  _user.departmentId = _department.id;
-                }));
+        DepartmentController(_user).getDepartmentById(departmentId: _user.departmentId).then((value) => setState(() {
+              _department = value;
+              _user.departmentId = _department.id;
+            }));
         _selectedGender = [_user.gender == 'F', _user.gender == 'M'];
       }
 
@@ -173,7 +171,7 @@ class _UserFormState extends State<UserForm> {
         _user.active = true;
         _user.manager = true;
         _user.institutionResponsible = true;
-        Provider.of<DepartmentController>(context, listen: false)
+        DepartmentController(_user)
             .getDepartmentByIdFirstAccess(firstAccessInstitutionId: _firstAccessInstitution!.id)
             .then((value) => setState(() {
                   _department = value;
@@ -190,6 +188,7 @@ class _UserFormState extends State<UserForm> {
     _initialization();
 
     return CustomScaffold(
+      responsive: true,
       title: _user.id == "" ? 'Novo usuário' : 'Alterar dados',
       body: SingleChildScrollView(
         child: Padding(
@@ -207,19 +206,28 @@ class _UserFormState extends State<UserForm> {
                     ),
                   if (_firstAccessInstitution == null)
                     DepartmentSelectionComponent(
+                      ctx: context,
                       error: _departmentError,
                       selectionItem: _user.departmentId.isEmpty
-                          ? DepartmentCard(department: Department(), screenMode: ScreenMode.showItem).emptyCard(context)
+                          ? DepartmentCard(
+                              department: Department(),
+                              screenMode: ScreenMode.showItem,
+                              user: _user,
+                            ).emptyCard(context)
                           : DepartmentCard(
                               department: _department,
                               screenMode: ScreenMode.showItem,
                               cropped: false,
+                              user: _user,
                             ),
                       onTap: () async {
                         var department = await showModalBottomSheet<Department>(
+                          constraints: kIsWeb
+                              ? BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.55)
+                              : BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
                           context: context,
                           isDismissible: true,
-                          builder: (context) => const DepartmentSelectionList(),
+                          builder: (context) => DepartmentSelectionList(user: _user),
                         );
                         if (department != null) {
                           setState(() {
@@ -370,8 +378,7 @@ class _UserFormState extends State<UserForm> {
                     value: _firstAccessInstitution != null ? true : _user.manager,
                     title: 'Gestor',
                     onChanged: (value) => setState(() => _user.manager = value!),
-                    enabled: _firstAccessInstitution != null ||
-                        Provider.of<UserController>(context, listen: false).currentUser.manager,
+                    enabled: _firstAccessInstitution != null || _user.manager,
                   ),
                   // Active
                   CustomCheckBox(
@@ -379,8 +386,7 @@ class _UserFormState extends State<UserForm> {
                     value: _firstAccessInstitution != null ? true : _user.active,
                     title: 'Ativo',
                     onChanged: (value) => setState(() => _user.active = value!),
-                    enabled: _firstAccessInstitution != null ||
-                        Provider.of<UserController>(context, listen: false).currentUser.manager,
+                    enabled: _firstAccessInstitution != null || _user.manager,
                   ),
                   // Institution Responsible
                   CustomCheckBox(
@@ -388,8 +394,7 @@ class _UserFormState extends State<UserForm> {
                     value: _firstAccessInstitution != null ? true : _user.institutionResponsible,
                     title: 'Responsável pela instituição',
                     onChanged: (value) => setState(() => _user.institutionResponsible = value!),
-                    enabled: _firstAccessInstitution != null ||
-                        Provider.of<UserController>(context, listen: false).currentUser.manager,
+                    enabled: _firstAccessInstitution != null || _user.manager,
                   ),
 
                   if (_firstAccessInstitution != null) const SizedBox(height: 5),
@@ -400,12 +405,9 @@ class _UserFormState extends State<UserForm> {
                         label: 'Cancelar',
                         onPressed: () async {
                           if (_firstAccessInstitution != null) {
-                            await Provider.of<InstitutionController>(context, listen: false).delete(
-                              institution: _firstAccessInstitution!,
-                            );
+                            await InstitutionController(_user).delete(institution: _firstAccessInstitution!);
                             Util.restartApplication();
                           }
-                          // ignore: use_build_context_synchronously
                           Navigator.of(context).pop();
                         },
                       ),

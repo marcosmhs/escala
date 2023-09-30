@@ -11,9 +11,9 @@ import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/main/routes.dart';
+import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/user/user_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class InstitutionRemoveScreen extends StatefulWidget {
   const InstitutionRemoveScreen({super.key});
@@ -29,7 +29,8 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
   var _userPasseword = '';
   var _confirmExclusion = false;
 
-  var institution = Institution();
+  var _institution = Institution();
+  var _user = User();
 
   void _submit() async {
     if (_saveingData) return;
@@ -39,7 +40,7 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
       return;
     }
 
-    if (Provider.of<UserController>(context, listen: false).currentUser.password != Util.encrypt(_userPasseword)) {
+    if (_user.password != Util.encrypt(_userPasseword)) {
       CustomDialog(context: context).errorMessage(message: 'Senha inválida');
       return;
     }
@@ -57,18 +58,15 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
 
       _saveingData = true;
       // salva os dados
-      InstitutionController institutionController = Provider.of(context, listen: false);
       CustomReturn retorno;
       try {
-        retorno = await institutionController.markInstitutionForExclusion(
-          institution: Provider.of<UserController>(context, listen: false).currentInstitution,
-        );
+        retorno = await InstitutionController(_user).markInstitutionForExclusion(institution: _institution, user: _user);
 
         // se houve um erro no login ou no cadastro exibe o erro
         if (retorno.returnType == ReturnType.error) {
           CustomMessage.error(context, message: retorno.message);
         }
-        Provider.of<UserController>(context, listen: false).logout();
+        UserController().logout();
         Navigator.restorablePushNamedAndRemoveUntil(
           context,
           Routes.landingScreen,
@@ -83,7 +81,12 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
   @override
   Widget build(BuildContext context) {
     if (_initializing) {
-      institution = Provider.of<UserController>(context, listen: false).currentInstitution;
+      final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+      _user = arguments['user'] ?? User();
+
+      InstitutionController(_user)
+          .getInstitutionFromId(institutionId: _user.institutionId)
+          .then((institution) => setState(() => _institution = institution));
 
       _initializing = false;
     }
@@ -114,7 +117,7 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
                 context: context,
                 labelText: 'Senha',
                 hintText: 'Confirme sua senha',
-                onSave: (value) => institution.name = value ?? '',
+                onSave: (value) => _institution.name = value ?? '',
                 prefixIcon: Icons.password,
                 textInputAction: TextInputAction.next,
                 onChanged: (value) => _userPasseword = value ?? '',

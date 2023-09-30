@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CustomScaffold extends StatelessWidget {
@@ -11,6 +12,7 @@ class CustomScaffold extends StatelessWidget {
   final Color? backgroundColor;
   final Widget? drawer;
   final PreferredSizeWidget? appBar;
+  final bool responsive;
 
   const CustomScaffold(
       {Key? key,
@@ -23,11 +25,18 @@ class CustomScaffold extends StatelessWidget {
       this.appBarActions,
       this.bottomNavigationBar,
       this.backgroundColor,
-      this.appBar})
+      this.appBar,
+      this.responsive = false})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+    if (responsive && kIsWeb) {
+      width = MediaQuery.of(context).size.width > 800
+          ? MediaQuery.of(context).size.width * 0.5
+          : MediaQuery.of(context).size.width * 0.8;
+    }
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: appBar ??
@@ -39,7 +48,7 @@ class CustomScaffold extends StatelessWidget {
               : null),
       bottomNavigationBar: bottomNavigationBar,
       drawer: showAppDrawer ? drawer : null,
-      body: body,
+      body: Center(child: SizedBox(width: width, child: body)),
       floatingActionButton: floatingActionButton,
     );
   }

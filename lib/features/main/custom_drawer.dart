@@ -1,13 +1,14 @@
+import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/user/user_controller.dart';
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:escala/features/main/routes.dart';
-import 'package:provider/provider.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
 
 class CustomDrawer extends StatefulWidget {
-  const CustomDrawer({Key? key}) : super(key: key);
+  final User currentUser;
+  const CustomDrawer({Key? key, required this.currentUser}) : super(key: key);
 
   @override
   State<CustomDrawer> createState() => _CustomDrawerState();
@@ -70,43 +71,46 @@ class _CustomDrawerState extends State<CustomDrawer> {
             // remove o botão do drawer quando ele está aberto
             automaticallyImplyLeading: true,
           ),
-          if (Provider.of<UserController>(context, listen: false).currentUser.manager) const Divider(),
-          if (Provider.of<UserController>(context, listen: false).currentUser.manager)
+          if (widget.currentUser.manager) const Divider(),
+          if (widget.currentUser.manager)
             _option(
               context: context,
               icon: const Icon(Icons.account_balance_rounded),
               text: 'Instituição',
               route: Routes.institutionForm,
+              args: {'user': widget.currentUser},
             ),
-          if (Provider.of<UserController>(context, listen: false).currentUser.manager)
+          if (widget.currentUser.manager)
             _option(
               context: context,
               icon: const Icon(Icons.door_sliding_outlined),
               text: 'Área/Setor',
               route: Routes.departmentScreen,
+              args: {'user': widget.currentUser},
             ),
-          if (Provider.of<UserController>(context, listen: false).currentUser.manager)
+          if (widget.currentUser.manager)
             _option(
               context: context,
               icon: const Icon(Icons.people_alt),
               text: 'Usuários',
               route: Routes.userScreen,
+              args: {'user': widget.currentUser},
             ),
-          if (Provider.of<UserController>(context, listen: false).currentUser.manager)
+          if (widget.currentUser.manager)
             _option(
               context: context,
               icon: const Icon(Icons.schedule),
               text: 'Escalas',
               route: Routes.scheduleScreen,
-              args: {'user': Provider.of<UserController>(context, listen: false).currentUser},
+              args: {'user': widget.currentUser},
             ),
-          if (Provider.of<UserController>(context, listen: false).currentUser.manager) const Divider(),
+          if (widget.currentUser.manager) const Divider(),
           _option(
             context: context,
             icon: const Icon(Icons.person_sharp),
             text: 'Alterar meus dados',
             route: Routes.userForm,
-            args: {'user': Provider.of<UserController>(context, listen: false).currentUser},
+            args: {'user': widget.currentUser},
           ),
           const Spacer(),
           _option(
@@ -114,15 +118,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
             icon: const Icon(Icons.settings),
             text: 'Configurações',
             route: Routes.institutionConfigForm,
+            args: {'user': widget.currentUser},
           ),
           _option(
             context: context,
             icon: const Icon(Icons.exit_to_app_sharp),
             text: 'Sair',
             onTap: () {
-              Provider.of<UserController>(context, listen: false).logout();
-              Navigator.restorablePushNamedAndRemoveUntil(
-                context,
+              UserController().logout();
+              Navigator.of(context).restorablePushNamedAndRemoveUntil(
                 Routes.landingScreen,
                 (route) => false,
               );

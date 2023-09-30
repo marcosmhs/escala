@@ -1,5 +1,6 @@
 import 'package:escala/components/visual_elements/month_picker/custom_month_container.dart';
 import 'package:escala/components/visual_elements/month_picker/custom_month_dialog.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 
@@ -47,8 +48,8 @@ class CustomMonthPicker {
         return StatefulBuilder(builder: (context, setState) {
           return CustomMonthDialog(
             child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.53,
-              width: MediaQuery.of(context).size.width * 0.85,
+              height: kIsWeb ? MediaQuery.of(context).size.height * 0.50 : MediaQuery.of(context).size.height * 0.53,
+              width: kIsWeb ? MediaQuery.of(context).size.width * 0.45 : MediaQuery.of(context).size.width * 0.85,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 // titulo

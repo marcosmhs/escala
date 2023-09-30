@@ -30,6 +30,13 @@
             {
               "client_id": "283635354027-nv1s3n04ngq1bl2sghd6h2dm0flahe5q.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "283635354027-3bpoac43auas5igmee9bk8hendqkfv5o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.thatexoticbug.escala"
+              }
             }
           ]
         }
@@ -59,6 +66,13 @@
             {
               "client_id": "283635354027-nv1s3n04ngq1bl2sghd6h2dm0flahe5q.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "283635354027-3bpoac43auas5igmee9bk8hendqkfv5o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.thatexoticbug.escala"
+              }
             }
           ]
         }

@@ -12,6 +12,7 @@ class ScheduleUsersComponent extends StatefulWidget {
   final String scheduleId;
   final ScheduleStatus scheduleStatus;
   final Institution institution;
+  final DateTime initialDate;
 
   const ScheduleUsersComponent({
     Key? key,
@@ -20,6 +21,7 @@ class ScheduleUsersComponent extends StatefulWidget {
     required this.scheduleId,
     required this.scheduleStatus,
     required this.institution,
+    required this.initialDate,
   }) : super(key: key);
 
   @override
@@ -60,7 +62,8 @@ class _ScheduleUsersComponentState extends State<ScheduleUsersComponent> {
                       scheduleDateList: widget.scheduleDateUsers[index].scheduleDates,
                       scheduleId: widget.scheduleId,
                       scheduleStatus: widget.scheduleStatus,
-                      userId: widget.scheduleDateUsers[index].user.id,
+                      user: widget.scheduleDateUsers[index].user,
+                      initialDate: widget.initialDate,
                     ),
                   ],
                 ),

@@ -1,4 +1,4 @@
-import 'dart:convert';
+//import 'dart:convert';
 
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/department/visualizations/department_form.dart';
@@ -20,8 +20,9 @@ import 'package:escala/features/user/visualization/user_form.dart';
 import 'package:escala/features/user/visualization/user_screen.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:json_theme/json_theme.dart';
+import 'package:hive_flutter/adapters.dart';
+//import 'package:flutter/services.dart';
+//import 'package:json_theme/json_theme.dart';
 import 'package:provider/provider.dart';
 
 // ignore: depend_on_referenced_packages
@@ -33,22 +34,25 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final themeLight = ThemeDecoder.decodeThemeData(jsonDecode(
-    await rootBundle.loadString('assets/theme_light.json'),
-  ))!;
+  //final themeLight = ThemeDecoder.decodeThemeData(jsonDecode(
+  //  await rootBundle.loadString('assets/theme_light.json'),
+  //))!;
+  //final themeDark = ThemeDecoder.decodeThemeData(jsonDecode(
+  //  await rootBundle.loadString('assets/theme_dark.json'),
+  //))!;
 
-  final themeDark = ThemeDecoder.decodeThemeData(jsonDecode(
-    await rootBundle.loadString('assets/theme_dark.json'),
-  ))!;
+  await Hive.initFlutter();
+  Hive.registerAdapter(UserAdapter());
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: Escala(themeLight: themeLight, themeDark: themeDark),
-    supportedLocales: const [
+    //home: Escala(themeLight: themeLight, themeDark: themeDark),
+    home: Escala(),
+    supportedLocales: [
       Locale('en', ''),
       Locale('pt-br', ''),
     ],
@@ -56,13 +60,13 @@ void main() async {
 }
 
 class Escala extends StatefulWidget {
-  final ThemeData themeLight;
-  final ThemeData themeDark;
+  final ThemeData? themeLight;
+  final ThemeData? themeDark;
 
   const Escala({
     Key? key,
-    required this.themeLight,
-    required this.themeDark,
+    this.themeLight,
+    this.themeDark,
   }) : super(key: key);
 
   @override
@@ -110,14 +114,14 @@ class _Home extends State<Escala> {
           Locale('pt-br', ''),
         ],
         title: 'Escala',
-        theme: widget.themeLight,
-        darkTheme: widget.themeDark,
+        //theme: widget.themeLight,
+        //darkTheme: widget.themeDark,
         routes: {
           Routes.institutionForm: (ctx) => const InstitutionForm(),
           Routes.institutionConfigForm: (ctx) => const InstitutionConfigForm(),
           Routes.landingScreen: (ctx) => const LandingScreen(),
           Routes.loginScreen: (ctx) => const LoginScreen(),
-          Routes.mainScreen: (ctx) => const MainScreen(),
+          Routes.mainScreen: (ctx) => MainScreen(),
           Routes.userForm: (ctx) => const UserForm(),
           Routes.userScreen: (ctx) => const UserScreen(),
           Routes.scheduleForm: (ctx) => const ScheduleForm(),

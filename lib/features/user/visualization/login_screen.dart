@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:escala/components/messaging/custom_message.dart';
 import 'package:escala/components/util/custom_return.dart';
 import 'package:escala/components/screen_elements/custom_scaffold.dart';
@@ -8,7 +10,6 @@ import 'package:escala/features/user/user_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -38,21 +39,18 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       // salva os dados
       _formKey.currentState?.save();
-      UserController userController = Provider.of(context, listen: false);
+      var userController = UserController();
       CustomReturn retorno;
       try {
         User user = User();
-        //user.email = _email;
         user.registration = _registration;
         user.password = Util.encrypt(_password);
         retorno = await userController.login(user: user, saveLoginData: true);
         if (retorno.returnType == ReturnType.sucess) {
-          // ignore: use_build_context_synchronously
-          Navigator.pushNamed(context, Routes.mainScreen);
+          Navigator.of(context).pushNamed(Routes.mainScreen, arguments: {'user': userController.currentUser});
         }
         // se houve um erro no login ou no cadastro exibe o erro
         if (retorno.returnType == ReturnType.error) {
-          // ignore: use_build_context_synchronously
           CustomMessage(
             context: context,
             messageText: retorno.message,
@@ -68,6 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
+      responsive: true,
       title: 'Login',
       body: Column(
         children: [

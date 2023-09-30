@@ -12,9 +12,8 @@ import 'package:escala/features/user/user_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:escala/features/user/visualization/user_list_card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
-import 'package:provider/provider.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
@@ -27,6 +26,10 @@ class _UserScreenState extends State<UserScreen> {
   bool _onlyActiverUsers = true;
   String _userRegistrationSearch = '';
   var _department = Department();
+
+  bool _initializing = true;
+  var _user = User();
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,7 @@ class _UserScreenState extends State<UserScreen> {
           return Dialog(
             child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.35,
+              width: kIsWeb ? MediaQuery.of(context).size.width * 0.35 : MediaQuery.of(context).size.width * 0.99,
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Column(
@@ -52,16 +56,25 @@ class _UserScreenState extends State<UserScreen> {
                     ),
                     const SizedBox(height: 5),
                     DepartmentSelectionComponent(
+                      ctx: context,
+                      fixedWidth: kIsWeb ? MediaQuery.of(context).size.width * 0.30 : MediaQuery.of(context).size.width * 0.99,
                       error: false,
                       selectionItem: _department.id.isEmpty
-                          ? DepartmentCard(department: Department(), screenMode: ScreenMode.showItem).emptyCard(context)
-                          : DepartmentCard(department: _department, screenMode: ScreenMode.showItem, cropped: false),
+                          ? DepartmentCard(
+                              department: Department(),
+                              screenMode: ScreenMode.showItem,
+                              user: _user,
+                            ).emptyCard(context)
+                          : DepartmentCard(department: _department, screenMode: ScreenMode.showItem, user: _user, cropped: false),
                       onTap: () {
                         Navigator.pop(ctx);
                         showModalBottomSheet<Department>(
+                          constraints: kIsWeb
+                              ? BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.55)
+                              : BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
                           context: context,
                           isDismissible: true,
-                          builder: (context) => const DepartmentSelectionList(),
+                          builder: (context) => DepartmentSelectionList(user: _user),
                         ).then((value) {
                           if (value != null) {
                             setState(() => _department = value);
@@ -93,12 +106,22 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_initializing) {
+      final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+
+      _user = arguments['user'] ?? User();
+      _user = User.fromMap(_user.toMap());
+
+      _initializing = false;
+    }
     return CustomScaffold(
-      showAppBar: false,
+      responsive: true,
+      title: 'Usuários',
       body: StreamBuilder<QuerySnapshot>(
-        stream: Provider.of<UserController>(context, listen: true).getUsers(
+        stream: UserController().getUsers(
           registration: _userRegistrationSearch,
           departmentId: _department.id,
+          institutionId: _user.institutionId,
           onlyActiveUsers: _onlyActiverUsers,
         ),
         builder: (context, snapshot) {
@@ -108,7 +131,6 @@ class _UserScreenState extends State<UserScreen> {
           if ((!snapshot.hasData) || (snapshot.data!.docs.isEmpty)) {
             return CustomSilverBarApp(
               context: context,
-              title: 'Usuários',
               actions: [IconButton(onPressed: () => _showUserSearch(context: context), icon: const Icon(Icons.search))],
               listHeaderitemExtent: MediaQuery.of(context).size.height * 0.08,
               listHeaderArea: onlyActiveUsersFilter(context),
@@ -127,13 +149,16 @@ class _UserScreenState extends State<UserScreen> {
             listHeaderArea: onlyActiveUsersFilter(context),
             sliverChildBuilderDelegate: SliverChildBuilderDelegate(
               childCount: usersList.length,
-              (BuildContext context, int index) => UserListCard(user: usersList[index]),
+              (BuildContext context, int index) => UserListCard(
+                user: usersList[index],
+                userManager: _user,
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, Routes.userForm),
+        onPressed: () => Navigator.of(context).pushNamed(Routes.userForm, arguments: {'userManager': _user}),
         child: const Icon(Icons.add),
       ),
     );

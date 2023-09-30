@@ -1,39 +1,49 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala/features/department/department.dart';
+import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/institution/institution.dart';
+import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/main/visualizations/schedule_date_user_list.dart';
 import 'package:escala/features/schedule/schedule_controller.dart';
 import 'package:escala/features/schedule/models/schedule.dart';
 import 'package:escala/features/schedule/models/schedule_date.dart';
 import 'package:escala/features/schedule/visualizations/schedule_user_calendar_component.dart';
 import 'package:escala/features/user/models/user.dart';
-import 'package:escala/features/user/user_controller.dart';
 import 'package:escala/features/main/custom_drawer.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:provider/provider.dart';
 
+// ignore: must_be_immutable
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  var _user = User();
+
+  @override
+  MainScreen({
+    Key? key,
+    User? user,
+  }) : super(key: key) {
+    if (user != null) _user = user;
+  }
 
   @override
   State<MainScreen> createState() => _MainScreen();
 }
 
 class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
-  var _user = User();
   var _institution = Institution();
   var _department = Department();
   var _showingUserList = false;
 
+  var _initializing = true;
+
   var _selectedScheduleStatusType = ScheduleStatus.released;
+
+  var _user = User();
 
   @override
   void initState() {
     super.initState();
-    _user = Provider.of<UserController>(context, listen: false).currentUser;
-    _institution = Provider.of<UserController>(context, listen: false).currentInstitution;
-    _department = Provider.of<UserController>(context, listen: false).currentUserDepartment;
   }
 
   void _scheduleTypeSelection({required BuildContext context}) {
@@ -88,12 +98,13 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void _showUserList({required BuildContext context, required String scheduleId, required DateTime date}) {
-    Provider.of<ScheduleController>(context, listen: false)
-        .getUsersOnScheduleDate(departmentId: _user.departmentId, scheduleId: scheduleId, date: date)
-        .then(
+    ScheduleController(_user).getUsersOnScheduleDate(departmentId: _user.departmentId, scheduleId: scheduleId, date: date).then(
       (list) {
         List<ScheduleDateUser> userList = list.where((u) => u.user.id != _user.id).toList();
         showModalBottomSheet(
+          constraints: kIsWeb
+              ? BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.55)
+              : BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
           context: context,
           isDismissible: true,
           builder: (context) => ScheduleDateUserList(
@@ -106,33 +117,37 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   Widget _baseStructure({required BuildContext context, required Widget streamBuilder}) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          ListTile(
-            contentPadding: const EdgeInsets.all(5.0),
-            leading: Icon(Department.icon, size: 30),
-            title: Text(
-              _department.name,
-              style: TextStyle(
-                fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
-                color: Theme.of(context).primaryColor,
-              ),
+    var main = Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.all(5.0),
+          leading: Icon(Department.icon, size: 30),
+          title: Text(
+            _department.name,
+            style: TextStyle(
+              fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize,
+              color: Theme.of(context).primaryColor,
             ),
           ),
-          streamBuilder,
-        ],
-      ),
+        ),
+        streamBuilder,
+      ],
     );
+
+    if (kIsWeb) {
+      return main;
+    } else {
+      return SingleChildScrollView(
+        child: main,
+      );
+    }
   }
 
   Widget _calendar({required BuildContext context}) {
     return _baseStructure(
       context: context,
       streamBuilder: StreamBuilder<QuerySnapshot>(
-        stream: Provider.of<ScheduleController>(context, listen: true).getUserSchadule(
-          userId: _user.id,
-        ),
+        stream: ScheduleController(_user).getUserSchadule(userId: _user.id),
         builder: (context, snapshot) {
           if ((!snapshot.hasData) || (snapshot.data!.docs.isEmpty)) {
             return const Text('Você ainda não possui escala');
@@ -156,7 +171,8 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
               scheduleDateList: scheduleDates,
               scheduleId: '',
               scheduleStatus: ScheduleStatus.released,
-              userId: _user.id,
+              user: _user,
+              initialDate: DateTime.now(),
               onTap: (calendarDatais) {
                 if (_selectedScheduleStatusType == ScheduleStatus.teamValidation && _showingUserList == false) {
                   _showingUserList = true;
@@ -176,7 +192,24 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (_initializing) {
+      final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+      _user = arguments['user'] ?? User();
+
+      if (widget._user.id.isNotEmpty) _user = widget._user;
+
+      InstitutionController(_user)
+          .getInstitutionFromId(institutionId: _user.institutionId)
+          .then((institution) => setState(() => _institution = institution));
+
+      DepartmentController(_user)
+          .getDepartmentById(departmentId: _user.departmentId)
+          .then((department) => setState(() => _department = department));
+      _initializing = false;
+    }
+
     return CustomScaffold(
+      responsive: true,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +228,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
-      drawer: const CustomDrawer(),
+      drawer: CustomDrawer(currentUser: _user),
       showAppDrawer: true,
       body: _calendar(context: context),
     );

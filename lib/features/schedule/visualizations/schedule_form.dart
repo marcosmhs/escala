@@ -12,14 +12,16 @@ import 'package:escala/features/department/visualizations/department_card.dart';
 import 'package:escala/features/department/visualizations/department_selection_component.dart';
 import 'package:escala/features/department/visualizations/department_selection_list.dart';
 import 'package:escala/features/institution/institution.dart';
+import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/institution/visualizations/schedule_date_config_colors_example.dart';
 import 'package:escala/features/schedule/schedule_controller.dart';
 import 'package:escala/features/schedule/models/schedule.dart';
 import 'package:escala/features/schedule/visualizations/schedule_users_component.dart';
+import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/user/user_controller.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ScheduleForm extends StatefulWidget {
   const ScheduleForm({super.key});
@@ -31,7 +33,6 @@ class ScheduleForm extends StatefulWidget {
 class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _maxPeopleDayOffController = TextEditingController();
-  bool _isInitialized = false;
   bool _freshGeneratedSchedule = false;
 
   bool isButtonLineVisible = true;
@@ -48,9 +49,14 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
 
   List<String> _scheduleGenerationStatusList = [];
 
-  Schedule schedule = Schedule();
+  Schedule _schedule = Schedule();
 
   List<ScheduleDateUser> _scheduleDateUsers = [];
+
+  var _user = User();
+  var _initializing = true;
+
+  late ScheduleController _scheduleController;
 
   void _releaseSchedule({required String scheduleId, required ScheduleStatus scheduleStatus}) async {
     if (!_releasingSchedule) {
@@ -59,17 +65,18 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
               message: scheduleStatus == ScheduleStatus.teamValidation
                   ? 'Confirma a liberação da escala para o time validá-la?'
                   : 'Liberar a escala? Depois de liberada ela não poderá ser alterada ou excluída.')
-          .then((value) {
+          .then((value) async {
         if (value == true) {
           setState(() => _releasingSchedule = true);
           try {
-            Provider.of<ScheduleController>(context, listen: false)
-                .releaseSchedule(scheduleId: scheduleId, scheduleStatus: scheduleStatus)
-                .then((value) {
-              Provider.of<ScheduleController>(context, listen: false).getScheduleById(scheduleId).then((value) {
-                setState(() => schedule = value);
-                setState(() => _releasingSchedule = false);
-              });
+            await _scheduleController.releaseSchedule(
+              scheduleId: scheduleId,
+              scheduleStatus: scheduleStatus,
+            );
+
+            _scheduleController.getScheduleById(scheduleId).then((value) {
+              setState(() => _schedule = value);
+              setState(() => _releasingSchedule = false);
             });
           } catch (e) {
             setState(() => _releasingSchedule = false);
@@ -80,7 +87,12 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
   }
 
   void _generateSchedule() {
-    if (schedule.departmentId.isEmpty) {
+    if (_schedule.isReleased) {
+      CustomDialog(context: context).informationDialog(message: 'A escala está finalizada e não pode ser alterada');
+      return;
+    }
+
+    if (_schedule.departmentId.isEmpty) {
       setState(() => _departmentError = true);
       CustomMessage(
         context: context,
@@ -90,7 +102,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
       return;
     }
 
-    if (schedule.initialDate == null || schedule.finalDate == null) {
+    if (_schedule.initialDate == null || _schedule.finalDate == null) {
       setState(() => _departmentError = true);
       CustomMessage(
         context: context,
@@ -114,7 +126,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
         messageText: 'Geração da escala iniciada',
       );
 
-      Provider.of<ScheduleController>(context, listen: false).generateSchedule(schedule: schedule).then((customReturn) {
+      _scheduleController.generateSchedule(schedule: _schedule).then((customReturn) {
         setState(() {
           _scheduleGenerationFinished = true;
           if (customReturn.returnType == ReturnType.error) {
@@ -131,13 +143,18 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
     return ButtonsLine(
       buttons: [
         Button(
-          label: schedule.id == '' ? 'Gerar escala' : 'Refazer Escala',
+          label: _schedule.id == '' ? 'Gerar escala' : 'Refazer Escala',
           onPressed: _generateSchedule,
-          enabled: schedule.status != ScheduleStatus.released && !_releasingSchedule,
+          enabled: _schedule.status != ScheduleStatus.released && !_releasingSchedule,
         ),
         Button(
           label: 'Liberar/Finalizar',
-          onPressed: () => {
+          onPressed: () {
+            if (_schedule.isReleased) {
+              CustomDialog(context: context).informationDialog(message: 'A escala está finalizada e não pode ser alterada');
+              return;
+            }
+
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -156,7 +173,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                             onPressed: () {
                               Navigator.pop(context);
                               _releaseSchedule(
-                                  scheduleId: _freshGeneratedSchedule ? freshGeneratedScheduleId : schedule.id,
+                                  scheduleId: _freshGeneratedSchedule ? freshGeneratedScheduleId : _schedule.id,
                                   scheduleStatus: ScheduleStatus.teamValidation);
                             },
                             child: const Text('Liberar para validação'),
@@ -171,7 +188,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                             onPressed: () {
                               Navigator.pop(context);
                               _releaseSchedule(
-                                  scheduleId: _freshGeneratedSchedule ? freshGeneratedScheduleId : schedule.id,
+                                  scheduleId: _freshGeneratedSchedule ? freshGeneratedScheduleId : _schedule.id,
                                   scheduleStatus: ScheduleStatus.released);
                             },
                             child: const Text('Finalizar e liberar'),
@@ -182,40 +199,48 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                   ),
                 );
               },
-            )
+            );
           },
-          enabled: schedule.status != ScheduleStatus.released && !_releasingSchedule,
+          enabled: _schedule.status != ScheduleStatus.released && !_releasingSchedule,
         ),
       ],
     );
   }
 
   void _initializingPreparation({required BuildContext context}) {
-    if (!_isInitialized) {
+    if (_initializing) {
       final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
-      schedule = arguments['schedule'] ?? Schedule();
-      schedule = Schedule.fromMap(schedule.toMap());
-      if (schedule.id.isNotEmpty) {
-        Provider.of<ScheduleController>(context, listen: false).getScheduleDates(scheduleId: schedule.id).then((value) {
+
+      _user = arguments['user'] ?? User();
+      _user = User.fromMap(_user.toMap());
+
+      _schedule = arguments['schedule'] ?? Schedule();
+      _schedule = Schedule.fromMap(_schedule.toMap());
+      if (_schedule.id.isNotEmpty) {
+        _scheduleController.getScheduleDates(scheduleId: _schedule.id).then((value) {
           setState(() => _scheduleDateUsers = value);
           setState(() => _freshGeneratedSchedule = false);
-          _maxPeopleDayOffController.text = schedule.maxPeopleDayOff.toString();
+          _maxPeopleDayOffController.text = _schedule.maxPeopleDayOff.toString();
         });
 
         _department = arguments['department'] ?? Department();
         if (_department.id.isEmpty) {
           _departmentError = true;
-          Provider.of<DepartmentController>(context, listen: false)
-              .getDepartmentById(departmentId: schedule.departmentId)
-              .then((value) => setState(() {
-                    _department = value;
-                    _departmentError = false;
-                  }));
+          DepartmentController(_user).getDepartmentById(departmentId: _schedule.departmentId).then((value) => setState(() {
+                _department = value;
+                _departmentError = false;
+              }));
         }
-        _departmentUserAmount(departmentId: schedule.departmentId);
+        _departmentUserAmount(departmentId: _schedule.departmentId);
       }
-      _institution = Provider.of<UserController>(context, listen: false).currentInstitution;
-      _isInitialized = true;
+
+      InstitutionController(_user)
+          .getInstitutionFromId(institutionId: _user.institutionId)
+          .then((institution) => setState(() => _institution = institution));
+
+      _scheduleController = ScheduleController(_user);
+
+      _initializing = false;
     }
   }
 
@@ -248,9 +273,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
   void _departmentUserAmount({required String departmentId}) {
     if (departmentId.isEmpty) return;
 
-    Provider.of<UserController>(context, listen: false)
-        .getUsersFromDepartment(departmentId: departmentId, onlyActiveUsers: true)
-        .then((value) {
+    UserController().getUsersFromDepartment(departmentId: departmentId, onlyActiveUsers: true).then((value) {
       if (value.isNotEmpty) {
         setState(() => _departmentUserAmountText = '${value.length} pessoas alocadas nesta área/setor');
       }
@@ -272,18 +295,23 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                   children: [
                     ElevatedButton(
                       onPressed: () {
+                        if (_schedule.isReleased) {
+                          CustomDialog(context: context)
+                              .informationDialog(message: 'A escala está finalizada e não pode ser alterada');
+                          return;
+                        }
                         CustomMonthPicker.showMonthYearPickerDialog(context: context).then((value) {
                           setState(() {
-                            schedule.initialDate = Util.firstDayOfMonth(value);
-                            schedule.finalDate = Util.lastDayOfMonth(value);
+                            _schedule.initialDate = Util.firstDayOfMonth(value);
+                            _schedule.finalDate = Util.lastDayOfMonth(value);
                           });
                         });
                       },
-                      child: Text(schedule.id.isEmpty ? 'Selecionar mês' : 'Alterar mês'),
+                      child: Text(_schedule.id.isEmpty ? 'Selecionar mês' : 'Alterar mês'),
                     ),
-                    Text(schedule.initialDate == null || schedule.finalDate == null
+                    Text(_schedule.initialDate == null || _schedule.finalDate == null
                         ? 'Selecione um mês'
-                        : '${Util.dateTimeFormat(date: schedule.initialDate!)} à ${Util.dateTimeFormat(date: schedule.finalDate!)}'),
+                        : '${Util.dateTimeFormat(date: _schedule.initialDate!)} à ${Util.dateTimeFormat(date: _schedule.finalDate!)}'),
                   ],
                 ),
                 // department
@@ -294,31 +322,43 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DepartmentSelectionComponent(
+                          ctx: context,
+                          fixedWidth: kIsWeb ? MediaQuery.of(context).size.width * 0.45 : MediaQuery.of(context).size.width - 32,
                           error: _departmentError,
-                          selectionItem: schedule.departmentId.isEmpty
+                          selectionItem: _schedule.departmentId.isEmpty
                               ? DepartmentCard(
                                   department: Department(),
                                   screenMode: ScreenMode.showItem,
                                   elevation: 0,
+                                  user: _user,
                                 ).emptyCard(context)
                               : DepartmentCard(
                                   department: _department,
                                   screenMode: ScreenMode.showItem,
                                   cropped: false,
                                   elevation: 0,
+                                  user: _user,
                                 ),
                           onTap: () {
+                            if (_schedule.isReleased) {
+                              CustomDialog(context: context)
+                                  .informationDialog(message: 'A escala está finalizada e não pode ser alterada');
+                              return;
+                            }
                             showModalBottomSheet<Department>(
+                              constraints: kIsWeb
+                                  ? BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.55)
+                                  : BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
                               context: context,
                               isDismissible: true,
-                              builder: (context) => const DepartmentSelectionList(),
+                              builder: (context) => DepartmentSelectionList(user: _user),
                             ).then((value) {
                               if (value != null) {
                                 setState(() {
                                   _departmentError = false;
                                   _department = value;
-                                  schedule.departmentId = _department.id;
-                                  schedule.maxPeopleDayOff = _department.maxPeopleDayOff;
+                                  _schedule.departmentId = _department.id;
+                                  _schedule.maxPeopleDayOff = _department.maxPeopleDayOff;
                                   _maxPeopleDayOffController.text = _department.maxPeopleDayOff.toString();
                                 });
                                 _departmentUserAmount(departmentId: _department.id);
@@ -346,10 +386,11 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                         const Text('Máximo de pessoas com folga no mesmo dia'),
                         const SizedBox(height: 5),
                         CustomTextEdit(
+                          enabled: !_schedule.isReleased,
                           context: context,
                           controller: _maxPeopleDayOffController,
                           onSave: (value) {
-                            schedule.maxPeopleDayOff = int.tryParse(value ?? '') ?? 0;
+                            _schedule.maxPeopleDayOff = int.tryParse(value ?? '') ?? 0;
                           },
                           labelText: '',
                           hintText: 'Informe o máximo de pessoas com folga no mesmo dia',
@@ -374,7 +415,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-                        child: Text(schedule.statusLabel()),
+                        child: Text(_schedule.statusLabel()),
                       ),
                     ),
                   ],
@@ -400,7 +441,8 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                     ],
                   ),
                 StreamBuilder<ScheduleStreamReturn>(
-                  stream: Provider.of<ScheduleController>(context, listen: false).scheduleStreamController,
+                  // stream: Provider.of<ScheduleController>(context, listen: false).scheduleStreamController,
+                  stream: _scheduleController.scheduleStreamController,
                   initialData: ScheduleStreamReturn([], [], ScheduleStreamReturnStatus.finished),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.none) {
@@ -466,8 +508,9 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
             context: ctx,
             institution: _institution,
             scheduleDateUsers: _scheduleDateUsers,
-            scheduleStatus: schedule.status,
-            scheduleId: schedule.id,
+            scheduleStatus: _schedule.status,
+            scheduleId: _schedule.id,
+            initialDate: _schedule.initialDate ?? DateTime.now(),
           )
         ],
       ),
@@ -478,6 +521,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 2);
+    _scheduleController = ScheduleController(User());
   }
 
   @override
@@ -485,11 +529,15 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
     _initializingPreparation(context: context);
 
     return CustomScaffold(
+      responsive: true,
       appBar: AppBar(
         actions: [
           IconButton(
               onPressed: () {
                 showModalBottomSheet(
+                  constraints: kIsWeb
+                      ? BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.55)
+                      : BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 32),
                   context: context,
                   isDismissible: true,
                   builder: (context) => ScheduleDateConfigColorsExample(institution: _institution),
@@ -500,9 +548,9 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(schedule.id == "" ? 'Nova Escala' : 'Alterar Escala'),
+            Text(_schedule.id == "" ? 'Nova Escala' : 'Alterar Escala'),
             Text(
-              'Situação: ${schedule.statusLabel()}',
+              'Situação: ${_schedule.statusLabel()}',
               style: TextStyle(
                 fontSize: Theme.of(context).textTheme.labelLarge!.fontSize,
                 color: Theme.of(context).cardColor,

@@ -109,7 +109,7 @@ class _CustomTextEditState extends State<CustomTextEdit> {
             maxLength: widget.maxLength,
             decoration: InputDecoration(
               filled: true,
-              fillColor: widget.fillColor ?? Theme.of(context).colorScheme.background,
+              fillColor: widget.fillColor,
               prefixIcon: widget.prefixIcon == null ? null : Icon(widget.prefixIcon),
               // set if password should be visible
               suffixIcon: !widget.isPassword
@@ -134,6 +134,6 @@ class _CustomTextEditState extends State<CustomTextEdit> {
     //widget.controller!.value = maskFormatter.updateMask(mask: widget.mask);
     //}
 
-    return  widgetResult;
+    return widgetResult;
   }
 }

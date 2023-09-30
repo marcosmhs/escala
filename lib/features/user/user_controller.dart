@@ -6,7 +6,7 @@ import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/user/models/user.dart';
-import 'package:escala/features/user/sharedpreferences_controller.dart';
+import 'package:escala/hive_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/foundation.dart';
 
@@ -25,16 +25,6 @@ class UserController with ChangeNotifier {
   User get currentUser => User.fromMap(_currentUser.toMap());
   Department get currentUserDepartment => Department.fromMap(_currentUserDepartment.toMap());
   Institution get currentInstitution => Institution.fromMap(_currentInstitution.toMap());
-
-  Future<void> tryAutoLogin() async {
-    if (currentUser.registration.isEmpty) {
-      final storedUserData = await SharedPreferencesController.getMap(key: 'userData');
-      // se os dados estão salvos pode seguir
-      if (storedUserData.isNotEmpty) {
-        await login(user: User.fromMap(storedUserData));
-      }
-    }
-  }
 
   Future<CustomReturn> login({required User user, bool saveLoginData = false}) async {
     try {
@@ -66,9 +56,8 @@ class UserController with ChangeNotifier {
 
       _currentUser = temporaryUserData;
 
-      if (saveLoginData) {
-        await SharedPreferencesController.setMap(key: 'userData', map: _currentUser.toMap());
-      }
+      var hiveController = HiveController();
+      hiveController.saveUser(user: _currentUser);
 
       notifyListeners();
       return CustomReturn.sucess;
@@ -80,7 +69,8 @@ class UserController with ChangeNotifier {
   void logout() async {
     _currentUser = User();
     _currentInstitution = Institution();
-    await SharedPreferencesController.removeValue(key: 'userData');
+    var hiveController = HiveController();
+    hiveController.removeBox();
     notifyListeners();
   }
 
@@ -122,7 +112,10 @@ class UserController with ChangeNotifier {
 
       user.id = UidGenerator.firestoreUid;
       await FirebaseFirestore.instance.collection(_userInformationCollection).doc(user.id).set(user.toMap());
-      //}
+
+      var hiveController = HiveController();
+      hiveController.saveUser(user: user);
+
       return CustomReturn.sucess;
     } on fb_auth.FirebaseException catch (e) {
       return CustomReturn.error(e.code);
@@ -131,7 +124,7 @@ class UserController with ChangeNotifier {
     }
   }
 
-  Future<CustomReturn> update({required User user}) async {
+  Future<CustomReturn> update({required User user, required User loggedUser}) async {
     try {
       if (await userRegistrationExists(registratiton: user.registration, id: user.id)) {
         return CustomReturn.error("Matrícula ${user.registration} já existe");
@@ -140,7 +133,7 @@ class UserController with ChangeNotifier {
       // preenche a senha do usuário com a senha corrente, para evitar que ela fique em branco.
       // somente é feito se a senha não foi preenchida, o que indica que ela não foi alterada.
       if (user.id == _currentUser.id) {
-        user.password = user.password.isNotEmpty ? user.password : _currentUser.password;
+        user.password = user.password.isNotEmpty ? user.password : loggedUser.password;
       } else {
         if (user.password.isEmpty) {
           // isso é feito para garantir que a senha não é perdida
@@ -151,11 +144,8 @@ class UserController with ChangeNotifier {
 
       await FirebaseFirestore.instance.collection(_userInformationCollection).doc(user.id).set(user.toMap());
 
-      // se está alterando dados do usuário corrent
-      if (user.id == _currentUser.id) {
-        _currentUser = User.fromMap(user.toMap());
-        await SharedPreferencesController.setMap(key: 'userData', map: _currentUser.toMap());
-      }
+      var hiveController = HiveController();
+      hiveController.saveUser(user: user);
 
       notifyListeners();
       return CustomReturn.sucess;
@@ -164,8 +154,12 @@ class UserController with ChangeNotifier {
     }
   }
 
-  Stream<QuerySnapshot<Object?>> getUsers(
-      {String registration = '', String departmentId = '', bool onlyActiveUsers = false, String institutionId = ''}) {
+  Stream<QuerySnapshot<Object?>> getUsers({
+    String registration = '',
+    String departmentId = '',
+    bool onlyActiveUsers = false,
+    String institutionId = '',
+  }) {
     var collection = FirebaseFirestore.instance.collection(_userInformationCollection);
 
     var userQuery = collection.where(

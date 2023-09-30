@@ -1,22 +1,43 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:hive/hive.dart';
+
+part 'user.g.dart';
+
+@HiveType(typeId: 0)
 class User {
   // Google User Data
+  @HiveField(0)
   late String id;
+  @HiveField(1)
   late String registration;
+  @HiveField(2)
   late String password;
+  @HiveField(3)
   late bool active;
+  @HiveField(4)
   late bool manager;
+  @HiveField(5)
   late bool institutionResponsible;
+  @HiveField(6)
   late String institutionId;
+  @HiveField(7)
   late String departmentId;
+  @HiveField(8)
   late bool needChangePassword;
+
   // Schedule data
+  @HiveField(9)
   late String name;
+  @HiveField(10)
   late String gender;
+  @HiveField(11)
   late int weekHours;
+  @HiveField(12)
   late int dailyHours;
+  @HiveField(13)
   late DateTime? lastScheduleDate;
+  @HiveField(14)
   late DateTime? exclusionDate;
 
   User(

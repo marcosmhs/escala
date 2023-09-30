@@ -731,7 +731,7 @@ class ScheduleController with ChangeNotifier {
         // ordena as datas em ordem crescente para que a última data seja a maior
         // atualiza a última escala daquela pessoa.
         scheduleDateUser.user.lastScheduleDate = lastScheduleDate;
-        userController.update(user: scheduleDateUser.user);
+        userController.update(user: scheduleDateUser.user, loggedUser: currentUser);
       }
 
       schedule.status = scheduleStatus;

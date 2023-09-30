@@ -23,6 +23,12 @@ class Schedule {
     this.maxPeopleDayOff = 0,
   });
 
+  
+  bool get isCreating => status == ScheduleStatus.creating;
+  bool get isValidating => status == ScheduleStatus.validating;
+  bool get isTeamValidation => status == ScheduleStatus.teamValidation;
+  bool get isReleased => status == ScheduleStatus.released;
+  
   factory Schedule.fromDocument(DocumentSnapshot doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return Schedule.fromMap(data);

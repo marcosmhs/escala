@@ -5,9 +5,9 @@ import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/department/visualizations/department_card.dart';
 import 'package:escala/features/main/routes.dart';
+import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
-import 'package:provider/provider.dart';
 
 class DepartmentScreen extends StatefulWidget {
   const DepartmentScreen({Key? key}) : super(key: key);
@@ -17,12 +17,25 @@ class DepartmentScreen extends StatefulWidget {
 }
 
 class _DepartmentScreenState extends State<DepartmentScreen> {
+  var _initializing = true;
+  var _user = User();
+
   @override
   Widget build(BuildContext context) {
+    if (_initializing) {
+      final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+
+      _user = arguments['user'] ?? User();
+      _user = User.fromMap(_user.toMap());
+
+      _initializing = false;
+    }
+
     return CustomScaffold(
-      showAppBar: false,
+      title: 'Áreas / Setores',
+      responsive: true,
       body: StreamBuilder<QuerySnapshot>(
-        stream: Provider.of<DepartmentController>(context, listen: true).getDepartments(),
+        stream: DepartmentController(_user).getDepartments(),
         builder: (context, snapshot) {
           if ((!snapshot.hasData) || (snapshot.data!.docs.isEmpty)) {
             return CustomSilverBarApp(
@@ -38,18 +51,20 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
 
           return CustomSilverBarApp(
             context: context,
-            title: 'Áreas / Setores',
             listItens: departmentList,
             listHeaderitemExtent: 120,
             sliverChildBuilderDelegate: SliverChildBuilderDelegate(
               childCount: departmentList.length,
-              (BuildContext context, int index) => DepartmentCard(department: departmentList[index]),
+              (BuildContext context, int index) => DepartmentCard(
+                department: departmentList[index],
+                user: _user,
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, Routes.departmentForm),
+        onPressed: () => Navigator.of(context).pushNamed(Routes.departmentForm, arguments: {'user': _user}),
         child: const Icon(Icons.add),
       ),
     );

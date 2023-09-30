@@ -28,41 +28,38 @@ class CustomSilverBarApp extends StatefulWidget {
 class _CustomSilverBarAppState extends State<CustomSilverBarApp> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: MediaQuery.of(widget.context).size.height * 0.95,
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            floating: true,
-            title: Text(widget.title),
-            actions: widget.actions,
+    return CustomScrollView(
+      slivers: [
+        //SliverAppBar(
+        //  floating: true,
+        //  title: Text(widget.title),
+        //  actions: widget.actions,
+        //),
+        if (widget.listHeaderArea != null)
+          SliverFixedExtentList(
+            itemExtent: widget.listHeaderitemExtent,
+            delegate: SliverChildListDelegate([widget.listHeaderArea!]),
           ),
-          if (widget.listHeaderArea != null)
-            SliverFixedExtentList(
-              itemExtent: widget.listHeaderitemExtent,
-              delegate: SliverChildListDelegate([widget.listHeaderArea!]),
-            ),
-          widget.listItens == null
-              ? SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    childCount: 1,
-                    (BuildContext context, int index) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 5),
-                      child: Column(
-                        children: [
-                          Text(
-                            widget.emptyListMessage,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                        ],
-                      ),
+        widget.listItens == null
+            ? SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  childCount: 1,
+                  (BuildContext context, int index) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 100, horizontal: 5),
+                    child: Column(
+                      children: [
+                        Text(
+                          widget.emptyListMessage,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                      ],
                     ),
                   ),
-                )
-              : SliverList(delegate: widget.sliverChildBuilderDelegate!),
-        ],
-      ),
+                ),
+              )
+            : SliverList(delegate: widget.sliverChildBuilderDelegate!),
+      ],
     );
   }
 }
