@@ -92,6 +92,7 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
     }
 
     return CustomScaffold(
+      responsive: true,
       title: 'Remover dados da instituição',
       body: SingleChildScrollView(
         child: Padding(

@@ -1,7 +1,7 @@
 name: escala
 description: APP para a geração e compartilhamento de escalas de trabalho.
 publish_to: 'none'
-version: 0.2.1+38
+version: 0.2.1+40
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter    
 
   build_runner: ^2.4.6
   json_theme: ^4.0.0

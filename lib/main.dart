@@ -1,5 +1,7 @@
 //import 'dart:convert';
 
+import 'dart:ui_web';
+
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/department/visualizations/department_form.dart';
 import 'package:escala/features/department/visualizations/department_screen.dart';
@@ -20,6 +22,7 @@ import 'package:escala/features/user/visualization/user_form.dart';
 import 'package:escala/features/user/visualization/user_screen.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:hive_flutter/adapters.dart';
 //import 'package:flutter/services.dart';
 //import 'package:json_theme/json_theme.dart';
@@ -31,6 +34,26 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+
+class XDPathUrlStrategy extends HashUrlStrategy {
+  // Creates an instance of [PathUrlStrategy].
+  // The [PlatformLocation] parameter is useful for testing to mock out browser interactions.
+  XDPathUrlStrategy([
+    super.platformLocation,
+  ]) : _basePath = stripTrailingSlash(extractPathname(checkBaseHref(
+          platformLocation.getBaseHref(),
+        )));
+
+  final String _basePath;
+
+  @override
+  String prepareExternalUrl(String internalUrl) {
+    if (internalUrl.isNotEmpty && !internalUrl.startsWith('/')) {
+      internalUrl = '/$internalUrl';
+    }
+    return '$_basePath/';
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +71,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  setUrlStrategy(XDPathUrlStrategy());
   runApp(const MaterialApp(
     debugShowCheckedModeBanner: false,
     //home: Escala(themeLight: themeLight, themeDark: themeDark),

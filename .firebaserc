@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "that-exotic-bug-escala"
-  }
+    "default": "that-exotic-bug-escala",
+    "escala": "that-exotic-bug-escala"
+  },
+  "targets": {},
+  "etags": {}
 }
