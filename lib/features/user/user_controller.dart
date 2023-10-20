@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/uid_generator.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/institution/institution_controller.dart';
@@ -9,6 +7,8 @@ import 'package:escala/features/user/models/user.dart';
 import 'package:escala/hive_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/foundation.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_uid_generator.dart';
 
 class UserController with ChangeNotifier {
   final String _userInformationCollection = 'user';
@@ -26,21 +26,21 @@ class UserController with ChangeNotifier {
   Department get currentUserDepartment => Department.fromMap(_currentUserDepartment.toMap());
   Institution get currentInstitution => Institution.fromMap(_currentInstitution.toMap());
 
-  Future<CustomReturn> login({required User user, bool saveLoginData = false}) async {
+  Future<TebCustomReturn> login({required User user, bool saveLoginData = false}) async {
     try {
       final temporaryUserData = await _getUsersByRegistration(user.registration);
 
-      if (temporaryUserData.registration.isEmpty) return CustomReturn.error('Usuário não encontrado');
-      if (temporaryUserData.password != user.password) return CustomReturn.error('Senha inválida');
-      if (!temporaryUserData.active) return CustomReturn.error('Usuário Inativo');
-      if (temporaryUserData.institutionId.isEmpty) return CustomReturn.error('Usuário sem instituição');
-      if (temporaryUserData.exclusionDate != null) return CustomReturn.error('Instituição do usuário em processo de remoção');
+      if (temporaryUserData.registration.isEmpty) return TebCustomReturn.error('Usuário não encontrado');
+      if (temporaryUserData.password != user.password) return TebCustomReturn.error('Senha inválida');
+      if (!temporaryUserData.active) return TebCustomReturn.error('Usuário Inativo');
+      if (temporaryUserData.institutionId.isEmpty) return TebCustomReturn.error('Usuário sem instituição');
+      if (temporaryUserData.exclusionDate != null) return TebCustomReturn.error('Instituição do usuário em processo de remoção');
 
       var institutionController = InstitutionController(_currentUser);
 
       var r = await institutionController.fillCurrentInstitution(institutionId: temporaryUserData.institutionId);
-      if (r.returnType == ReturnType.error) {
-        return CustomReturn.error('Erro ao localizar a instituição do usuário: ${r.message}');
+      if (r.returnType == TebReturnType.error) {
+        return TebCustomReturn.error('Erro ao localizar a instituição do usuário: ${r.message}');
       }
       _currentInstitution = institutionController.currentInstitution;
 
@@ -51,7 +51,7 @@ class UserController with ChangeNotifier {
       );
 
       if (_currentUserDepartment.id.isEmpty) {
-        return CustomReturn.error('Erro ao localizar a área/setor do usuário: ${r.message}');
+        return TebCustomReturn.error('Erro ao localizar a área/setor do usuário: ${r.message}');
       }
 
       _currentUser = temporaryUserData;
@@ -60,9 +60,9 @@ class UserController with ChangeNotifier {
       hiveController.saveUser(user: _currentUser);
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
@@ -103,31 +103,31 @@ class UserController with ChangeNotifier {
     return user;
   }
 
-  Future<CustomReturn> create({required User user}) async {
+  Future<TebCustomReturn> create({required User user}) async {
     try {
       var checkUserRegistration = await userRegistrationExists(registratiton: user.registration, id: user.id);
       if (checkUserRegistration) {
-        return CustomReturn.error("Matrícula ${user.registration} já existe");
+        return TebCustomReturn.error("Matrícula ${user.registration} já existe");
       }
 
-      user.id = UidGenerator.firestoreUid;
+      user.id = TebUidGenerator.firestoreUid;
       await FirebaseFirestore.instance.collection(_userInformationCollection).doc(user.id).set(user.toMap());
 
       var hiveController = HiveController();
       hiveController.saveUser(user: user);
 
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } on fb_auth.FirebaseException catch (e) {
-      return CustomReturn.error(e.code);
+      return TebCustomReturn.error(e.code);
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> update({required User user, required User loggedUser}) async {
+  Future<TebCustomReturn> update({required User user, required User loggedUser}) async {
     try {
       if (await userRegistrationExists(registratiton: user.registration, id: user.id)) {
-        return CustomReturn.error("Matrícula ${user.registration} já existe");
+        return TebCustomReturn.error("Matrícula ${user.registration} já existe");
       }
 
       // preenche a senha do usuário com a senha corrente, para evitar que ela fique em branco.
@@ -148,9 +148,9 @@ class UserController with ChangeNotifier {
       hiveController.saveUser(user: user);
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 

@@ -1,4 +1,3 @@
-import 'package:escala/components/util/custom_return.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/schedule/schedule_controller.dart';
 import 'package:escala/features/schedule/models/schedule.dart';
@@ -7,7 +6,10 @@ import 'package:escala/features/schedule/visualizations/schedule_date_type_list.
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// ignore: depend_on_referenced_packages
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:teb_package/util/teb_return.dart';
 
 enum DisplayMode { dialog, modal }
 
@@ -79,7 +81,7 @@ class _ScheduleUsersCalendarComponentState extends State<ScheduleUsersCalendarCo
         );
 
         ScheduleController(widget.user).addScheduleDate(scheduleDate: scheduleDate).then((value) {
-          if (value.returnType == ReturnType.sucess) {
+          if (value.returnType == TebReturnType.sucess) {
             setState(() => widget.scheduleDateList.add(scheduleDate));
           }
         });

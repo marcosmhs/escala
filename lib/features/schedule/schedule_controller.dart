@@ -2,15 +2,15 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/uid_generator.dart';
-import 'package:escala/components/util/util.dart';
 import 'package:escala/features/schedule/models/schedule.dart';
 import 'package:escala/features/schedule/models/schedule_date.dart';
 import 'package:escala/features/user/user_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_uid_generator.dart';
+import 'package:teb_package/util/teb_util.dart';
 
 enum ScheduleStreamReturnStatus { info, weekendDayOff, weeydayDayOff, fullDayWork, finished, error }
 
@@ -67,35 +67,35 @@ class ScheduleController with ChangeNotifier {
   // CRUD Schedule
   // ------------------------------------------------------------------------------
 
-  Future<CustomReturn> _addSchedule({required Schedule schedule}) async {
+  Future<TebCustomReturn> _addSchedule({required Schedule schedule}) async {
     try {
       await FirebaseFirestore.instance.collection(_scheduleCollection).doc(schedule.id).set(schedule.toMap());
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> _updateSchedule({required Schedule schedule}) async {
+  Future<TebCustomReturn> _updateSchedule({required Schedule schedule}) async {
     try {
       await FirebaseFirestore.instance.collection(_scheduleCollection).doc(schedule.id).update(schedule.toMap());
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> deleteSchedule({required Schedule schedule}) async {
+  Future<TebCustomReturn> deleteSchedule({required Schedule schedule}) async {
     try {
       // se a escala está em validação do time
       if (schedule.status == ScheduleStatus.teamValidation) {
         // remove a escala das pessoas
         var r = await deleteScheduleDateUser(schedule: schedule);
-        if (r.returnType == ReturnType.error) {
-          return CustomReturn.error(e.toString());
+        if (r.returnType == TebReturnType.error) {
+          return TebCustomReturn.error(e.toString());
         }
       }
 
@@ -113,13 +113,13 @@ class ScheduleController with ChangeNotifier {
       await FirebaseFirestore.instance.collection(_scheduleCollection).doc(schedule.id).delete();
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> deleteScheduleDateUser({required Schedule schedule}) async {
+  Future<TebCustomReturn> deleteScheduleDateUser({required Schedule schedule}) async {
     try {
       // se a escala está em validação do time
       // localiza todos os usuários da área/setor (independente se estão ativos ou não)
@@ -158,9 +158,9 @@ class ScheduleController with ChangeNotifier {
       await FirebaseFirestore.instance.collection(_scheduleCollection).doc(schedule.id).delete();
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
@@ -192,9 +192,9 @@ class ScheduleController with ChangeNotifier {
   // CRUD ScheduleDate
   // ------------------------------------------------------------------------------
 
-  Future<CustomReturn> addScheduleDate({required ScheduleDate scheduleDate, bool needNotifyListeners = true}) async {
+  Future<TebCustomReturn> addScheduleDate({required ScheduleDate scheduleDate, bool needNotifyListeners = true}) async {
     try {
-      var scheduleDateId = UidGenerator.firestoreUid;
+      var scheduleDateId = TebUidGenerator.firestoreUid;
       scheduleDate.id = scheduleDateId;
       await FirebaseFirestore.instance
           .collection(_scheduleCollection)
@@ -205,13 +205,13 @@ class ScheduleController with ChangeNotifier {
 
       if (needNotifyListeners) notifyListeners();
 
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> deleteScheduleDate({required ScheduleDate scheduleDate}) async {
+  Future<TebCustomReturn> deleteScheduleDate({required ScheduleDate scheduleDate}) async {
     try {
       await FirebaseFirestore.instance
           .collection(_scheduleCollection)
@@ -219,9 +219,9 @@ class ScheduleController with ChangeNotifier {
           .collection(_scheduleDateCollection)
           .doc(scheduleDate.id)
           .delete();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
@@ -498,15 +498,15 @@ class ScheduleController with ChangeNotifier {
     return regularDayOffList;
   }
 
-  Future<CustomReturn> saveScheduleDateList({
+  Future<TebCustomReturn> saveScheduleDateList({
     required Schedule schedule,
     required List<ScheduleDate> scheduleDateList,
   }) async {
     _addStreamResult(message: 'Salvando todas as datas');
-    CustomReturn r = CustomReturn.sucess;
+    TebCustomReturn r = TebCustomReturn.sucess;
     for (var scheduleDate in scheduleDateList) {
       r = await addScheduleDate(scheduleDate: scheduleDate, needNotifyListeners: false);
-      if (r.returnType == ReturnType.error) {
+      if (r.returnType == TebReturnType.error) {
         break;
       }
     }
@@ -534,7 +534,7 @@ class ScheduleController with ChangeNotifier {
     return false;
   }
 
-  Future<CustomReturn> generateSchedule({required Schedule schedule}) async {
+  Future<TebCustomReturn> generateSchedule({required Schedule schedule}) async {
     var userController = UserController();
     scheduleStreamStringList.clear();
 
@@ -543,10 +543,10 @@ class ScheduleController with ChangeNotifier {
     List<ScheduleDate> scheduleDateList = [];
     List<DateTime> usedDates = [];
 
-    List<DateTime> sundayList = Util.getSundayList(schedule.initialDate!, schedule.finalDate!);
+    List<DateTime> sundayList = TebUtil.getSundayList(schedule.initialDate!, schedule.finalDate!);
     List<ScheduleDateUser> scheduleDateUsers = [];
 
-    CustomReturn r;
+    TebCustomReturn r;
 
     // ---------------------------------------------
     // salva a escala que está sendo criada
@@ -557,23 +557,23 @@ class ScheduleController with ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 500));
       r = await deleteSchedule(schedule: schedule);
 
-      if (r.returnType == ReturnType.error) {
+      if (r.returnType == TebReturnType.error) {
         _addStreamResult(message: 'Ocorreu um erro: ${r.message}', status: ScheduleStreamReturnStatus.error);
-        return CustomReturn.error('Ocorreu um erro: ${r.message}');
+        return TebCustomReturn.error('Ocorreu um erro: ${r.message}');
       }
     }
 
     _addStreamResult(message: 'Salvando dados da escala');
-    schedule.id = UidGenerator.firestoreUid;
+    schedule.id = TebUidGenerator.firestoreUid;
     schedule.institutionId = currentUser.institutionId;
     schedule.status = ScheduleStatus.creating;
     schedule.userCreatorId = currentUser.id;
 
     r = await _addSchedule(schedule: schedule);
 
-    if (r.returnType == ReturnType.error) {
+    if (r.returnType == TebReturnType.error) {
       _addStreamResult(message: 'Ocorreu um erro: ${r.message}', status: ScheduleStreamReturnStatus.error);
-      return CustomReturn.error('Ocorreu um erro: ${r.message}');
+      return TebCustomReturn.error('Ocorreu um erro: ${r.message}');
     }
 
     try {
@@ -596,7 +596,7 @@ class ScheduleController with ChangeNotifier {
         userDayOffList = [];
         if (user.lastScheduleDate != null) {
           _addStreamResult(
-            message: 'Escala de ${user.name}, última folga: ${Util.dateTimeFormat(date: user.lastScheduleDate!)}',
+            message: 'Escala de ${user.name}, última folga: ${TebUtil.dateTimeFormat(date: user.lastScheduleDate!)}',
           );
         } else {
           _addStreamResult(message: 'Escala de ${user.name}');
@@ -661,7 +661,7 @@ class ScheduleController with ChangeNotifier {
           scheduleDateList: scheduleDateList,
         );
 
-        if (r.returnType == ReturnType.error) {
+        if (r.returnType == TebReturnType.error) {
           _addStreamResult(message: 'Ocorreu um erro: ${r.message}');
 
           break;
@@ -673,18 +673,18 @@ class ScheduleController with ChangeNotifier {
       schedule.status = ScheduleStatus.validating;
       r = await _updateSchedule(schedule: schedule);
 
-      if (r.returnType == ReturnType.error) {
+      if (r.returnType == TebReturnType.error) {
         _addStreamResult(message: 'Ocorreu um erro: ${r.message}');
-        return CustomReturn.error('Ocorreu um erro: ${r.message}');
+        return TebCustomReturn.error('Ocorreu um erro: ${r.message}');
       }
       _addStreamResult(message: 'Finalizado', scheduleDateUsers: scheduleDateUsers, status: ScheduleStreamReturnStatus.finished);
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } finally {
       userController.dispose();
     }
   }
 
-  Future<CustomReturn> releaseSchedule({required String scheduleId, required ScheduleStatus scheduleStatus}) async {
+  Future<TebCustomReturn> releaseSchedule({required String scheduleId, required ScheduleStatus scheduleStatus}) async {
     try {
       var schedule = await getScheduleById(scheduleId);
       var scheduleDateUsers = await getScheduleDates(scheduleId: schedule.id);
@@ -694,8 +694,8 @@ class ScheduleController with ChangeNotifier {
       // a exclusão da escala nos usuários
       if (scheduleStatus == ScheduleStatus.released && schedule.status == ScheduleStatus.teamValidation) {
         var r = await deleteScheduleDateUser(schedule: schedule);
-        if (r.returnType == ReturnType.error) {
-          return CustomReturn.error(e.toString());
+        if (r.returnType == TebReturnType.error) {
+          return TebCustomReturn.error(e.toString());
         }
       }
 
@@ -709,7 +709,7 @@ class ScheduleController with ChangeNotifier {
 
         while (date!.isBefore(schedule.finalDate!.add(const Duration(days: 1)))) {
           if (scheduleDateUser.scheduleDates.where((e) => e.date == date).isEmpty) {
-            baseScheduleDate.id = UidGenerator.firestoreUid;
+            baseScheduleDate.id = TebUidGenerator.firestoreUid;
             baseScheduleDate.date = date;
             baseScheduleDate.type = ScheduleDateType.workDay6h;
             scheduleDateUser.scheduleDates.add(ScheduleDate.fromMap(baseScheduleDate.toMap()));
@@ -738,9 +738,9 @@ class ScheduleController with ChangeNotifier {
       await _updateSchedule(schedule: schedule);
       notifyListeners();
 
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 

@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/visual_elements/custom_silverappbar.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/department/visualizations/department_card.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/visual_elements/teb_silverappbar.dart';
 // ignore: depend_on_referenced_packages
 
 class DepartmentScreen extends StatefulWidget {
@@ -31,14 +31,14 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
       _initializing = false;
     }
 
-    return CustomScaffold(
-      title: 'Áreas / Setores',
+    return TebCustomScaffold(
+      title: const Text('Áreas / Setores'),
       responsive: true,
       body: StreamBuilder<QuerySnapshot>(
         stream: DepartmentController(_user).getDepartments(),
         builder: (context, snapshot) {
           if ((!snapshot.hasData) || (snapshot.data!.docs.isEmpty)) {
-            return CustomSilverBarApp(
+            return TebSilverBarApp(
               context: context,
               title: 'Áreas / Setores',
               emptyListMessage: 'Nenhuma área/setor cadastrada',
@@ -49,7 +49,7 @@ class _DepartmentScreenState extends State<DepartmentScreen> {
           // transforma o retorno do snapshot em uma lista de categorias
           List<Department> departmentList = snapshot.data!.docs.map((e) => Department.fromDocument(e)).toList();
 
-          return CustomSilverBarApp(
+          return TebSilverBarApp(
             context: context,
             listItens: departmentList,
             listHeaderitemExtent: 120,

@@ -1,13 +1,13 @@
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/visual_elements/custom_checkbox.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_checkbox.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class DepartmentForm extends StatefulWidget {
   const DepartmentForm({super.key});
@@ -35,19 +35,19 @@ class _DepartmentFormState extends State<DepartmentForm> {
     } else {
       // salva os dados
       _formKey.currentState?.save();
-      CustomReturn retorno;
+      TebCustomReturn retorno;
       try {
         retorno = await DepartmentController(_user).save(department: _department);
 
-        if (retorno.returnType == ReturnType.sucess) {
+        if (retorno.returnType == TebReturnType.sucess) {
           // ignore: use_build_context_synchronously
-          CustomMessage.sucess(context,
+          TebCustomMessage.sucess(context,
               message: _department.id.isEmpty ? 'Área/setor criado com sucesso!' : 'Área/setor alterado com sucesso!');
           // ignore: use_build_context_synchronously
           Navigator.of(context).pop();
         } else {
           // ignore: use_build_context_synchronously
-          CustomMessage.error(context, message: retorno.message);
+          TebCustomMessage.error(context, message: retorno.message);
         }
       } finally {
         _saveingData = false;
@@ -70,8 +70,8 @@ class _DepartmentFormState extends State<DepartmentForm> {
       _initializing = false;
     }
 
-    return CustomScaffold(
-      title: _department.id == "" ? 'Nova área/setor' : 'Alterar seus área/setor',
+    return TebCustomScaffold(
+      title: Text(_department.id == "" ? 'Nova área/setor' : 'Alterar seus área/setor'),
       responsive: true,
       body: SingleChildScrollView(
         child: Padding(
@@ -81,7 +81,7 @@ class _DepartmentFormState extends State<DepartmentForm> {
               child: Column(
                 children: [
                   // name
-                  CustomTextEdit(
+                  TebTextEdit(
                     context: context,
                     controller: _nameController,
                     labelText: 'Nome',
@@ -96,7 +96,7 @@ class _DepartmentFormState extends State<DepartmentForm> {
                     },
                   ),
                   // maxPeopleDayOff
-                  CustomTextEdit(
+                  TebTextEdit(
                     context: context,
                     controller: _maxPeopleDayOffController,
                     labelText: 'Máximo de pessoas com folga no mesmo dia',
@@ -113,17 +113,17 @@ class _DepartmentFormState extends State<DepartmentForm> {
                   ),
 
                   // Active
-                  CustomCheckBox(
+                  TebCheckBox(
                     context: context,
                     value: _department.active,
                     title: 'Ativo',
                     onChanged: (value) => setState(() => _department.active = value!),
                   ),
 
-                  ButtonsLine(
+                  TebButtonsLine(
                     buttons: [
-                      Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
-                      Button(label: 'Salvar dados', onPressed: _submit),
+                      TebButton(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
+                      TebButton(label: 'Salvar dados', onPressed: _submit),
                     ],
                   ),
                 ],

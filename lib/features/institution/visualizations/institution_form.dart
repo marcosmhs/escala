@@ -1,15 +1,15 @@
-import 'package:escala/components/messaging/custom_dialog.dart';
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/visual_elements/custom_checkbox.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_dialog.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_checkbox.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class InstitutionForm extends StatefulWidget {
   const InstitutionForm({super.key});
@@ -39,15 +39,15 @@ class _InstitutionFormState extends State<InstitutionForm> {
     } else {
       // salva os dados
       _formKey.currentState?.save();
-      CustomReturn retorno;
+      TebCustomReturn retorno;
       try {
         if (_institution.id.isEmpty) {
           retorno = await InstitutionController(_user).create(institution: _institution);
-          if (retorno.returnType == ReturnType.sucess) {
+          if (retorno.returnType == TebReturnType.sucess) {
             // ignore: use_build_context_synchronously
-            CustomMessage.sucess(context, message: 'Instituição criado com sucesso');
+            TebCustomMessage.sucess(context, message: 'Instituição criado com sucesso');
             // ignore: use_build_context_synchronously
-            if (retorno.returnType == ReturnType.sucess) {
+            if (retorno.returnType == TebReturnType.sucess) {
               if (_firstAccess) {
                 // ignore: use_build_context_synchronously
                 Navigator.pushReplacementNamed(
@@ -68,9 +68,9 @@ class _InstitutionFormState extends State<InstitutionForm> {
         }
 
         // se houve um erro no login ou no cadastro exibe o erro
-        if (retorno.returnType == ReturnType.error) {
+        if (retorno.returnType == TebReturnType.error) {
           // ignore: use_build_context_synchronously
-          CustomMessage.error(context, message: retorno.message);
+          TebCustomMessage.error(context, message: retorno.message);
         }
       } finally {
         _saveingData = false;
@@ -99,9 +99,9 @@ class _InstitutionFormState extends State<InstitutionForm> {
       _initializing = false;
     }
 
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
-      title: 'Instituição',
+      title: const Text('Instituição'),
       body: Padding(
         padding: const EdgeInsets.all(5.0),
         child: Form(
@@ -114,7 +114,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                   child: Text("Informe os dados básicos de sua instituição"),
                 ),
               // name
-              CustomTextEdit(
+              TebTextEdit(
                 context: context,
                 controller: _nameController,
                 labelText: 'Nome',
@@ -130,7 +130,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                 },
               ),
               // Active
-              CustomCheckBox(
+              TebCheckBox(
                 context: context,
                 value: _firstAccess ? true : _institution.active,
                 title: 'Instituição ativa',
@@ -138,7 +138,7 @@ class _InstitutionFormState extends State<InstitutionForm> {
                   if (value == true) {
                     setState(() => _institution.active = true);
                   } else {
-                    CustomDialog(context: context)
+                    TebCustomDialog(context: context)
                         .confirmationDialog(
                             message: 'Se desativar a instituição ninguém mais poderá acessar suas escalas. Deseja continuar?')
                         .then(
@@ -150,10 +150,10 @@ class _InstitutionFormState extends State<InstitutionForm> {
               ),
 
               if (_firstAccess) const SizedBox(height: 5),
-              ButtonsLine(
+              TebButtonsLine(
                 buttons: [
-                  Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
-                  Button(
+                  TebButton(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
+                  TebButton(
                     label: _institution.id == '' ? 'Cadastrar nova instituição' : 'Altera dados da instituição',
                     onPressed: _submit,
                   ),

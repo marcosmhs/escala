@@ -12,7 +12,7 @@ import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/main/custom_drawer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
 
 // ignore: must_be_immutable
 class MainScreen extends StatefulWidget {
@@ -208,7 +208,7 @@ class _MainScreen extends State<MainScreen> with TickerProviderStateMixin {
       _initializing = false;
     }
 
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
       appBar: AppBar(
         title: Column(

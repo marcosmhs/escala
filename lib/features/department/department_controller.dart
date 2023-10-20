@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/uid_generator.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_uid_generator.dart';
 
 class DepartmentController with ChangeNotifier {
   final String _departmentCollection = 'department';
@@ -21,13 +21,13 @@ class DepartmentController with ChangeNotifier {
   // CRUD Schedule
   // ------------------------------------------------------------------------------
 
-  Future<CustomReturn> save({required Department department}) async {
+  Future<TebCustomReturn> save({required Department department}) async {
     return department.id.isEmpty ? _add(department: department) : _update(department: department);
   }
 
-  Future<CustomReturn> _add({required Department department}) async {
+  Future<TebCustomReturn> _add({required Department department}) async {
     try {
-      department.id = UidGenerator.firestoreUid;
+      department.id = TebUidGenerator.firestoreUid;
       department.institutionId = department.institutionId.isNotEmpty ? department.institutionId : _user.institutionId;
       department.creationDate = DateTime.now();
       await FirebaseFirestore.instance
@@ -38,13 +38,13 @@ class DepartmentController with ChangeNotifier {
           .set(department.toMap());
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> _update({required Department department}) async {
+  Future<TebCustomReturn> _update({required Department department}) async {
     try {
       department.updateDate = DateTime.now();
       await FirebaseFirestore.instance
@@ -55,13 +55,13 @@ class DepartmentController with ChangeNotifier {
           .update(department.toMap());
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> delete({required Department department}) async {
+  Future<TebCustomReturn> delete({required Department department}) async {
     try {
       await FirebaseFirestore.instance
           .collection(_institutionCollection)
@@ -71,9 +71,9 @@ class DepartmentController with ChangeNotifier {
           .delete();
 
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 

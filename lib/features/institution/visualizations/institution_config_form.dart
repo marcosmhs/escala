@@ -1,14 +1,13 @@
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
 
 class InstitutionConfigForm extends StatefulWidget {
   const InstitutionConfigForm({super.key});
@@ -40,15 +39,15 @@ class _InstitutionConfigFormState extends State<InstitutionConfigForm> {
       // salva os dados
       _formKey.currentState?.save();
       var institutionController = InstitutionController(_user);
-      CustomReturn retorno;
+      TebCustomReturn retorno;
       try {
         retorno = await institutionController.update(institution: _institution);
-        if (retorno.returnType == ReturnType.error) {
+        if (retorno.returnType == TebReturnType.error) {
           // ignore: use_build_context_synchronously
-          CustomMessage.sucess(context, message: retorno.message);
+          TebCustomMessage.sucess(context, message: retorno.message);
         } else {
           // ignore: use_build_context_synchronously
-          CustomMessage.sucess(context, message: 'Configurações alteradas com sucesso');
+          TebCustomMessage.sucess(context, message: 'Configurações alteradas com sucesso');
 
           // ignore: use_build_context_synchronously
           Navigator.of(context).pop();
@@ -124,9 +123,9 @@ class _InstitutionConfigFormState extends State<InstitutionConfigForm> {
       _initializing = false;
     }
 
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
-      title: 'Configurações',
+      title: const Text('Configurações'),
       body: Padding(
         padding: const EdgeInsets.all(5.0),
         child: Form(
@@ -180,10 +179,10 @@ class _InstitutionConfigFormState extends State<InstitutionConfigForm> {
                 },
               ),
               const SizedBox(height: 10),
-              ButtonsLine(
+              TebButtonsLine(
                 buttons: [
-                  Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
-                  Button(
+                  TebButton(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
+                  TebButton(
                     label: _institution.id == '' ? 'Cadastrar nova instituição' : 'Altera dados da instituição',
                     onPressed: _submit,
                   ),

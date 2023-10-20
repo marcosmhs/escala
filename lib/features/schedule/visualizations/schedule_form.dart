@@ -1,11 +1,3 @@
-import 'package:escala/components/messaging/custom_dialog.dart';
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/util.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
-import 'package:escala/components/visual_elements/month_picker/custom_month_picker.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/department/visualizations/department_card.dart';
@@ -22,6 +14,14 @@ import 'package:escala/features/user/user_controller.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_dialog.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_util.dart';
+import 'package:teb_package/visual_elements/month_picker/teb_month_picker.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class ScheduleForm extends StatefulWidget {
   const ScheduleForm({super.key});
@@ -60,7 +60,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
 
   void _releaseSchedule({required String scheduleId, required ScheduleStatus scheduleStatus}) async {
     if (!_releasingSchedule) {
-      CustomDialog(context: context)
+      TebCustomDialog(context: context)
           .confirmationDialog(
               message: scheduleStatus == ScheduleStatus.teamValidation
                   ? 'Confirma a liberação da escala para o time validá-la?'
@@ -88,26 +88,26 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
 
   void _generateSchedule() {
     if (_schedule.isReleased) {
-      CustomDialog(context: context).informationDialog(message: 'A escala está finalizada e não pode ser alterada');
+      TebCustomDialog(context: context).informationDialog(message: 'A escala está finalizada e não pode ser alterada');
       return;
     }
 
     if (_schedule.departmentId.isEmpty) {
       setState(() => _departmentError = true);
-      CustomMessage(
+      TebCustomMessage(
         context: context,
         messageText: 'Para gerar uma escala é necessário selecionar a área/departamento',
-        messageType: MessageType.error,
+        messageType: TebMessageType.error,
       );
       return;
     }
 
     if (_schedule.initialDate == null || _schedule.finalDate == null) {
       setState(() => _departmentError = true);
-      CustomMessage(
+      TebCustomMessage(
         context: context,
         messageText: 'É necessário selecionar um mês para a geração da escala',
-        messageType: MessageType.error,
+        messageType: TebMessageType.error,
       );
       return;
     }
@@ -119,9 +119,9 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
         _scheduleGenerationStatusList = [];
       });
 
-      CustomMessage(
+      TebCustomMessage(
         context: context,
-        messageType: MessageType.info,
+        messageType: TebMessageType.info,
         durationInSeconds: 5,
         messageText: 'Geração da escala iniciada',
       );
@@ -129,10 +129,10 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
       _scheduleController.generateSchedule(schedule: _schedule).then((customReturn) {
         setState(() {
           _scheduleGenerationFinished = true;
-          if (customReturn.returnType == ReturnType.error) {
-            CustomMessage.error(context, message: customReturn.message);
+          if (customReturn.returnType == TebReturnType.error) {
+            TebCustomMessage.error(context, message: customReturn.message);
           } else {
-            CustomMessage.sucess(context, message: 'Escala finalizada');
+            TebCustomMessage.sucess(context, message: 'Escala finalizada');
           }
         });
       });
@@ -140,18 +140,18 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
   }
 
   Widget _buttonsLine() {
-    return ButtonsLine(
+    return TebButtonsLine(
       buttons: [
-        Button(
+        TebButton(
           label: _schedule.id == '' ? 'Gerar escala' : 'Refazer Escala',
           onPressed: _generateSchedule,
           enabled: _schedule.status != ScheduleStatus.released && !_releasingSchedule,
         ),
-        Button(
+        TebButton(
           label: 'Liberar/Finalizar',
           onPressed: () {
             if (_schedule.isReleased) {
-              CustomDialog(context: context).informationDialog(message: 'A escala está finalizada e não pode ser alterada');
+              TebCustomDialog(context: context).informationDialog(message: 'A escala está finalizada e não pode ser alterada');
               return;
             }
 
@@ -296,14 +296,14 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                     ElevatedButton(
                       onPressed: () {
                         if (_schedule.isReleased) {
-                          CustomDialog(context: context)
+                          TebCustomDialog(context: context)
                               .informationDialog(message: 'A escala está finalizada e não pode ser alterada');
                           return;
                         }
-                        CustomMonthPicker.showMonthYearPickerDialog(context: context).then((value) {
+                        TebMonthPicker.showMonthYearPickerDialog(context: context).then((value) {
                           setState(() {
-                            _schedule.initialDate = Util.firstDayOfMonth(value);
-                            _schedule.finalDate = Util.lastDayOfMonth(value);
+                            _schedule.initialDate = TebUtil.firstDayOfMonth(value);
+                            _schedule.finalDate = TebUtil.lastDayOfMonth(value);
                           });
                         });
                       },
@@ -311,7 +311,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                     ),
                     Text(_schedule.initialDate == null || _schedule.finalDate == null
                         ? 'Selecione um mês'
-                        : '${Util.dateTimeFormat(date: _schedule.initialDate!)} à ${Util.dateTimeFormat(date: _schedule.finalDate!)}'),
+                        : '${TebUtil.dateTimeFormat(date: _schedule.initialDate!)} à ${TebUtil.dateTimeFormat(date: _schedule.finalDate!)}'),
                   ],
                 ),
                 // department
@@ -341,7 +341,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                                 ),
                           onTap: () {
                             if (_schedule.isReleased) {
-                              CustomDialog(context: context)
+                              TebCustomDialog(context: context)
                                   .informationDialog(message: 'A escala está finalizada e não pode ser alterada');
                               return;
                             }
@@ -385,7 +385,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
                       children: [
                         const Text('Máximo de pessoas com folga no mesmo dia'),
                         const SizedBox(height: 5),
-                        CustomTextEdit(
+                        TebTextEdit(
                           enabled: !_schedule.isReleased,
                           context: context,
                           controller: _maxPeopleDayOffController,
@@ -528,7 +528,7 @@ class _ScheduleFormState extends State<ScheduleForm> with TickerProviderStateMix
   Widget build(BuildContext context) {
     _initializingPreparation(context: context);
 
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
       appBar: AppBar(
         actions: [

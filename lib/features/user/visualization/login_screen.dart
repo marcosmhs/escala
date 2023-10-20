@@ -1,15 +1,14 @@
 // ignore_for_file: use_build_context_synchronously
-
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/util/util.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/user/user_controller.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_util.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -40,21 +39,21 @@ class _LoginScreenState extends State<LoginScreen> {
       // salva os dados
       _formKey.currentState?.save();
       var userController = UserController();
-      CustomReturn retorno;
+      TebCustomReturn retorno;
       try {
         User user = User();
         user.registration = _registration;
-        user.password = Util.encrypt(_password);
+        user.password = TebUtil.encrypt(_password);
         retorno = await userController.login(user: user, saveLoginData: true);
-        if (retorno.returnType == ReturnType.sucess) {
+        if (retorno.returnType == TebReturnType.sucess) {
           Navigator.of(context).pushNamed(Routes.mainScreen, arguments: {'user': userController.currentUser});
         }
         // se houve um erro no login ou no cadastro exibe o erro
-        if (retorno.returnType == ReturnType.error) {
-          CustomMessage(
+        if (retorno.returnType == TebReturnType.error) {
+          TebCustomMessage(
             context: context,
             messageText: retorno.message,
-            messageType: MessageType.error,
+            messageType: TebMessageType.error,
           );
         }
       } finally {
@@ -65,9 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
-      title: 'Login',
+      title: const Text('Login'),
       body: Column(
         children: [
           Expanded(
@@ -79,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const SizedBox(height: 10),
                       Text('Escala', style: Theme.of(context).textTheme.displayMedium),
-                      CustomTextEdit(
+                      TebTextEdit(
                           context: context,
                           controller: _registrationController,
                           labelText: 'Matrícula',
@@ -93,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (finalValue.trim().isEmpty) return 'Informe a matrícula';
                             return null;
                           }),
-                      CustomTextEdit(
+                      TebTextEdit(
                         context: context,
                         controller: _passwordController,
                         labelText: 'Senha',
@@ -113,9 +112,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 10),
                       _isLoading
                           ? const CircularProgressIndicator.adaptive()
-                          : ButtonsLine(
+                          : TebButtonsLine(
                               buttons: [
-                                Button(
+                                TebButton(
                                     label: 'Entrar',
                                     onPressed: _login,
                                     textStyle: TextStyle(fontSize: Theme.of(context).textTheme.titleLarge!.fontSize)),

@@ -1,19 +1,18 @@
 // ignore_for_file: use_build_context_synchronously
-
-import 'package:escala/components/messaging/custom_dialog.dart';
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/util.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/visual_elements/custom_checkbox.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/institution/institution_controller.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/user/user_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_dialog.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_util.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_checkbox.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class InstitutionRemoveScreen extends StatefulWidget {
   const InstitutionRemoveScreen({super.key});
@@ -36,21 +35,21 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
     if (_saveingData) return;
 
     if (_userPasseword.isEmpty) {
-      CustomDialog(context: context).errorMessage(message: 'Informe sua senha para iniciar a exclusão da instituição');
+      TebCustomDialog(context: context).errorMessage(message: 'Informe sua senha para iniciar a exclusão da instituição');
       return;
     }
 
-    if (_user.password != Util.encrypt(_userPasseword)) {
-      CustomDialog(context: context).errorMessage(message: 'Senha inválida');
+    if (_user.password != TebUtil.encrypt(_userPasseword)) {
+      TebCustomDialog(context: context).errorMessage(message: 'Senha inválida');
       return;
     }
 
     if (!_confirmExclusion) {
-      CustomDialog(context: context).errorMessage(message: 'Marque a opção de confirmação da exclusão');
+      TebCustomDialog(context: context).errorMessage(message: 'Marque a opção de confirmação da exclusão');
       return;
     }
 
-    CustomDialog(context: context)
+    TebCustomDialog(context: context)
         .confirmationDialog(
             message: 'Deseja realmente excluir os dados de sua instituição? \n\n Este processo não pode ser revertido')
         .then((response) async {
@@ -58,13 +57,13 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
 
       _saveingData = true;
       // salva os dados
-      CustomReturn retorno;
+      TebCustomReturn retorno;
       try {
         retorno = await InstitutionController(_user).markInstitutionForExclusion(institution: _institution, user: _user);
 
         // se houve um erro no login ou no cadastro exibe o erro
-        if (retorno.returnType == ReturnType.error) {
-          CustomMessage.error(context, message: retorno.message);
+        if (retorno.returnType == TebReturnType.error) {
+          TebCustomMessage.error(context, message: retorno.message);
         }
         UserController().logout();
         Navigator.restorablePushNamedAndRemoveUntil(
@@ -91,9 +90,9 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
       _initializing = false;
     }
 
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
-      title: 'Remover dados da instituição',
+      title: const Text('Remover dados da instituição'),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(5.0),
@@ -114,7 +113,7 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
               const SizedBox(height: 15),
               const Text('Para seguir com o processo informe sua senha'),
               // password
-              CustomTextEdit(
+              TebTextEdit(
                 context: context,
                 labelText: 'Senha',
                 hintText: 'Confirme sua senha',
@@ -125,17 +124,17 @@ class _InstitutionRemoveScreenState extends State<InstitutionRemoveScreen> {
                 isPassword: true,
               ),
               const SizedBox(height: 20),
-              CustomCheckBox(
+              TebCheckBox(
                 context: context,
                 value: _confirmExclusion,
                 title: 'Marque esta opção para confirmar que deseja excluir os dados de sua instituição',
                 onChanged: (value) => setState(() => _confirmExclusion = value!),
               ),
               const SizedBox(height: 20),
-              ButtonsLine(
+              TebButtonsLine(
                 buttons: [
-                  Button(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
-                  Button(
+                  TebButton(label: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
+                  TebButton(
                     label: 'Remover dados da instituição',
                     onPressed: _submit,
                   ),

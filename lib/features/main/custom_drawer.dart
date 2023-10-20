@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:escala/features/main/routes.dart';
 
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:teb_package/util/teb_util.dart';
 
 class CustomDrawer extends StatefulWidget {
   final User currentUser;
@@ -15,14 +15,7 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  PackageInfo _packageInfo = PackageInfo(
-    appName: '',
-    packageName: '',
-    version: '',
-    buildNumber: '',
-    buildSignature: '',
-    installerStore: '',
-  );
+  var _packageInfo = TebUtil.packageInfo;
 
   Column _option({
     required BuildContext context,
@@ -55,7 +48,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
+    final info = await TebUtil.version;
     setState(() {
       _packageInfo = info;
     });

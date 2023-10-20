@@ -1,12 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/util.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/visual_elements/custom_checkbox.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/department/visualizations/department_card.dart';
@@ -18,6 +11,13 @@ import 'package:escala/features/user/models/user.dart';
 import 'package:escala/features/user/user_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_util.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_checkbox.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class UserForm extends StatefulWidget {
   const UserForm({super.key});
@@ -57,10 +57,10 @@ class _UserFormState extends State<UserForm> {
 
     if (_user.departmentId.isEmpty) {
       setState(() => _departmentError = true);
-      CustomMessage(
+      TebCustomMessage(
         context: context,
         messageText: 'O usuário deve ser vinculado a uma área/setor',
-        messageType: MessageType.error,
+        messageType: TebMessageType.error,
       );
       return;
     }
@@ -72,26 +72,26 @@ class _UserFormState extends State<UserForm> {
       // salva os dados
       _formKey.currentState?.save();
       var userController = UserController();
-      CustomReturn retorno;
+      TebCustomReturn retorno;
       try {
         if (_user.id.isEmpty) {
           _user.institutionId = _firstAccessInstitution != null ? _firstAccessInstitution!.id : _userManager.id;
 
           retorno = await userController.create(user: _user);
-          if (retorno.returnType == ReturnType.sucess) {
-            CustomMessage.sucess(context, message: 'Login criado com sucesso');
+          if (retorno.returnType == TebReturnType.sucess) {
+            TebCustomMessage.sucess(context, message: 'Login criado com sucesso');
             Navigator.of(context).pop();
           }
         } else {
           retorno = await userController.update(user: _user, loggedUser: _user);
-          if (retorno.returnType == ReturnType.sucess) {
+          if (retorno.returnType == TebReturnType.sucess) {
             Navigator.of(context).pop();
           }
         }
 
         // se houve um erro no login ou no cadastro exibe o erro
-        if (retorno.returnType == ReturnType.error) {
-          CustomMessage.error(context, message: retorno.message);
+        if (retorno.returnType == TebReturnType.error) {
+          TebCustomMessage.error(context, message: retorno.message);
         }
       } finally {
         _saveingData = false;
@@ -187,9 +187,9 @@ class _UserFormState extends State<UserForm> {
   Widget build(BuildContext context) {
     _initialization();
 
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
-      title: _user.id == "" ? 'Novo usuário' : 'Alterar dados',
+      title: Text(_user.id == "" ? 'Novo usuário' : 'Alterar dados'),
       body: SingleChildScrollView(
         child: Padding(
             padding: const EdgeInsets.all(5.0),
@@ -240,7 +240,7 @@ class _UserFormState extends State<UserForm> {
                     ),
 
                   // name
-                  CustomTextEdit(
+                  TebTextEdit(
                     context: context,
                     controller: _nameController,
                     labelText: 'Nome',
@@ -257,7 +257,7 @@ class _UserFormState extends State<UserForm> {
                     },
                   ),
                   // registration
-                  CustomTextEdit(
+                  TebTextEdit(
                     context: context,
                     controller: _registrationController,
                     labelText: 'Matrícula',
@@ -317,13 +317,13 @@ class _UserFormState extends State<UserForm> {
                       'Se quiser alterar a senha informe ela e a repita nos campos abaixo, caso contrário deixe-os em branco',
                     ),
                   // password
-                  CustomTextEdit(
+                  TebTextEdit(
                     context: context,
                     controller: _passwordController,
                     labelText: 'Senha',
                     hintText: 'Informe sua senha',
                     isPassword: true,
-                    onSave: (value) => _user.password = Util.encrypt(value ?? ''),
+                    onSave: (value) => _user.password = TebUtil.encrypt(value ?? ''),
                     prefixIcon: Icons.lock,
                     textInputAction: TextInputAction.next,
                     focusNode: _passwordFocus,
@@ -347,7 +347,7 @@ class _UserFormState extends State<UserForm> {
                     },
                   ),
                   // password confirmation
-                  CustomTextEdit(
+                  TebTextEdit(
                     context: context,
                     controller: _confirmPasswordController,
                     labelText: 'Repita a senha',
@@ -373,7 +373,7 @@ class _UserFormState extends State<UserForm> {
                     },
                   ),
                   // Manager
-                  CustomCheckBox(
+                  TebCheckBox(
                     context: context,
                     value: _firstAccessInstitution != null ? true : _user.manager,
                     title: 'Gestor',
@@ -381,7 +381,7 @@ class _UserFormState extends State<UserForm> {
                     enabled: _firstAccessInstitution != null || _user.manager,
                   ),
                   // Active
-                  CustomCheckBox(
+                  TebCheckBox(
                     context: context,
                     value: _firstAccessInstitution != null ? true : _user.active,
                     title: 'Ativo',
@@ -389,7 +389,7 @@ class _UserFormState extends State<UserForm> {
                     enabled: _firstAccessInstitution != null || _user.manager,
                   ),
                   // Institution Responsible
-                  CustomCheckBox(
+                  TebCheckBox(
                     context: context,
                     value: _firstAccessInstitution != null ? true : _user.institutionResponsible,
                     title: 'Responsável pela instituição',
@@ -399,19 +399,19 @@ class _UserFormState extends State<UserForm> {
 
                   if (_firstAccessInstitution != null) const SizedBox(height: 5),
                   // Buttons
-                  ButtonsLine(
+                  TebButtonsLine(
                     buttons: [
-                      Button(
+                      TebButton(
                         label: 'Cancelar',
                         onPressed: () async {
                           if (_firstAccessInstitution != null) {
                             await InstitutionController(_user).delete(institution: _firstAccessInstitution!);
-                            Util.restartApplication();
+                            TebUtil.restartApplication();
                           }
                           Navigator.of(context).pop();
                         },
                       ),
-                      Button(label: _user.registration == '' ? 'Cadastrar novo usuário' : 'Confirmar', onPressed: _submit),
+                      TebButton(label: _user.registration == '' ? 'Cadastrar novo usuário' : 'Confirmar', onPressed: _submit),
                     ],
                   ),
                 ],

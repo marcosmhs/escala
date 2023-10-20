@@ -1,13 +1,13 @@
 // ignore: depend_on_referenced_packages
-import 'package:escala/components/messaging/custom_dialog.dart';
-import 'package:escala/components/messaging/custom_message.dart';
-import 'package:escala/components/util/custom_return.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/main/routes.dart';
 import 'package:escala/features/user/models/user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/messaging/teb_custom_dialog.dart';
+import 'package:teb_package/messaging/teb_custom_message.dart';
+import 'package:teb_package/util/teb_return.dart';
 
 enum ScreenMode { form, list, showItem }
 
@@ -63,21 +63,21 @@ class _DepartmentCardState extends State<DepartmentCard> {
       department: widget.department,
     );
 
-    if (retorno.returnType == ReturnType.sucess) {
+    if (retorno.returnType == TebReturnType.sucess) {
       // ignore: use_build_context_synchronously
-      CustomMessage(
+      TebCustomMessage(
         context: context,
         messageText: 'Dados salvos com sucesso',
-        messageType: MessageType.sucess,
+        messageType: TebMessageType.sucess,
       );
     }
     // se houve um erro no login ou no cadastro exibe o erro
-    if (retorno.returnType == ReturnType.error) {
+    if (retorno.returnType == TebReturnType.error) {
       // ignore: use_build_context_synchronously
-      CustomMessage(
+      TebCustomMessage(
         context: context,
         messageText: retorno.message,
-        messageType: MessageType.error,
+        messageType: TebMessageType.error,
       );
     }
   }
@@ -116,7 +116,7 @@ class _DepartmentCardState extends State<DepartmentCard> {
                         IconButton(
                           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.primary),
                           onPressed: () async {
-                            final deletedConfirmed = await CustomDialog(context: context).confirmationDialog(
+                            final deletedConfirmed = await TebCustomDialog(context: context).confirmationDialog(
                               message: 'Confirma a exclusão deste departamento?',
                             );
 
@@ -124,9 +124,9 @@ class _DepartmentCardState extends State<DepartmentCard> {
                               _delete(user: widget.user);
                             } else {
                               // ignore: use_build_context_synchronously
-                              CustomMessage(
+                              TebCustomMessage(
                                 context: context,
-                                messageType: MessageType.info,
+                                messageType: TebMessageType.info,
                                 messageText: 'Exclusão cancelada',
                               );
                             }

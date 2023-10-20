@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala/components/util/custom_return.dart';
-import 'package:escala/components/util/uid_generator.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/department_controller.dart';
 import 'package:escala/features/institution/institution.dart';
@@ -9,6 +7,8 @@ import 'package:escala/features/user/user_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/util/teb_return.dart';
+import 'package:teb_package/util/teb_uid_generator.dart';
 
 class InstitutionController with ChangeNotifier {
   final String _institutionCollection = 'institution';
@@ -21,17 +21,17 @@ class InstitutionController with ChangeNotifier {
 
   Institution get currentInstitution => Institution.fromMap(_currentInstitution.toMap());
 
-  Future<CustomReturn> fillCurrentInstitution({required String institutionId}) async {
+  Future<TebCustomReturn> fillCurrentInstitution({required String institutionId}) async {
     final institutionDataRef = await FirebaseFirestore.instance.collection(_institutionCollection).doc(institutionId).get();
     final data = institutionDataRef.data();
 
     if (data == null) {
-      return CustomReturn.error('Instituição não encontrada');
+      return TebCustomReturn.error('Instituição não encontrada');
     }
 
     _currentInstitution = Institution.fromMap(data);
 
-    return CustomReturn.sucess;
+    return TebCustomReturn.sucess;
   }
 
   Future<Institution> getInstitutionFromId({required String institutionId}) async {
@@ -41,9 +41,9 @@ class InstitutionController with ChangeNotifier {
     return data == null ? Institution() : Institution.fromMap(data);
   }
 
-  Future<CustomReturn> create({required Institution institution}) async {
+  Future<TebCustomReturn> create({required Institution institution}) async {
     try {
-      institution.id = UidGenerator.firestoreUid;
+      institution.id = TebUidGenerator.firestoreUid;
       institution.creationDate = DateTime.now();
       await FirebaseFirestore.instance.collection(_institutionCollection).doc(institution.id).set(institution.toMap());
       _currentInstitution = institution;
@@ -57,27 +57,27 @@ class InstitutionController with ChangeNotifier {
         ),
       );
 
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } on fb_auth.FirebaseException catch (e) {
-      return CustomReturn.error(e.code);
+      return TebCustomReturn.error(e.code);
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> update({required Institution institution}) async {
+  Future<TebCustomReturn> update({required Institution institution}) async {
     try {
       institution.updateDate = DateTime.now();
       await FirebaseFirestore.instance.collection(_institutionCollection).doc(institution.id).set(institution.toMap());
       _currentInstitution = institution;
       notifyListeners();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> markInstitutionForExclusion({required Institution institution, required User user}) async {
+  Future<TebCustomReturn> markInstitutionForExclusion({required Institution institution, required User user}) async {
     //getUsers para percorrer os usuários e marcar para exclusão
     try {
       var userController = UserController();
@@ -92,16 +92,16 @@ class InstitutionController with ChangeNotifier {
       institution.exclusionDate = DateTime.now();
       return update(institution: institution);
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 
-  Future<CustomReturn> delete({required Institution institution}) async {
+  Future<TebCustomReturn> delete({required Institution institution}) async {
     try {
       await FirebaseFirestore.instance.collection(_institutionCollection).doc(institution.id).delete();
-      return CustomReturn.sucess;
+      return TebCustomReturn.sucess;
     } catch (e) {
-      return CustomReturn.error(e.toString());
+      return TebCustomReturn.error(e.toString());
     }
   }
 }

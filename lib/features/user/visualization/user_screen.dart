@@ -1,9 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala/components/screen_elements/custom_scaffold.dart';
-import 'package:escala/components/visual_elements/buttons_line.dart';
-import 'package:escala/components/visual_elements/custom_silverappbar.dart';
-import 'package:escala/components/visual_elements/custom_switch.dart';
-import 'package:escala/components/visual_elements/custom_textFormField.dart';
 import 'package:escala/features/department/department.dart';
 import 'package:escala/features/department/visualizations/department_card.dart';
 import 'package:escala/features/department/visualizations/department_selection_component.dart';
@@ -14,6 +9,11 @@ import 'package:escala/features/main/routes.dart';
 import 'package:escala/features/user/visualization/user_list_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/screen_elements/teb_custom_scaffold.dart';
+import 'package:teb_package/visual_elements/teb_buttons_line.dart';
+import 'package:teb_package/visual_elements/teb_silverappbar.dart';
+import 'package:teb_package/visual_elements/teb_switch.dart';
+import 'package:teb_package/visual_elements/teb_text_form_field.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({Key? key}) : super(key: key);
@@ -49,7 +49,7 @@ class _UserScreenState extends State<UserScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Informe a matrícula que deseja localizar', textAlign: TextAlign.start),
-                    CustomTextEdit(
+                    TebTextEdit(
                       labelText: 'Localizar Matrícula',
                       inicialValue: _userRegistrationSearch,
                       onChanged: (value) => setState(() => _userRegistrationSearch = value ?? ''),
@@ -83,8 +83,8 @@ class _UserScreenState extends State<UserScreen> {
                       },
                     ),
                     const SizedBox(height: 5),
-                    ButtonsLine(buttons: [
-                      Button(
+                    TebButtonsLine(buttons: [
+                      TebButton(
                         label: 'Limpar pesquisa',
                         onPressed: () {
                           setState(() {
@@ -94,7 +94,7 @@ class _UserScreenState extends State<UserScreen> {
                           Navigator.pop(ctx);
                         },
                       ),
-                      Button(label: 'OK', onPressed: () => Navigator.pop(ctx)),
+                      TebButton(label: 'OK', onPressed: () => Navigator.pop(ctx)),
                     ]),
                   ],
                 ),
@@ -114,9 +114,9 @@ class _UserScreenState extends State<UserScreen> {
 
       _initializing = false;
     }
-    return CustomScaffold(
+    return TebCustomScaffold(
       responsive: true,
-      title: 'Usuários',
+      title: const Text('Usuários'),
       body: StreamBuilder<QuerySnapshot>(
         stream: UserController().getUsers(
           registration: _userRegistrationSearch,
@@ -129,7 +129,7 @@ class _UserScreenState extends State<UserScreen> {
             return const Text('Ocorreu um erro!');
           }
           if ((!snapshot.hasData) || (snapshot.data!.docs.isEmpty)) {
-            return CustomSilverBarApp(
+            return TebSilverBarApp(
               context: context,
               actions: [IconButton(onPressed: () => _showUserSearch(context: context), icon: const Icon(Icons.search))],
               listHeaderitemExtent: MediaQuery.of(context).size.height * 0.08,
@@ -140,7 +140,7 @@ class _UserScreenState extends State<UserScreen> {
           // transforma o retorno do snapshot em uma lista de categorias
           List<User> usersList = snapshot.data!.docs.map((e) => User.fromDocument(e)).toList();
 
-          return CustomSilverBarApp(
+          return TebSilverBarApp(
             context: context,
             title: usersList.isEmpty ? 'Usuários' : 'Usuários (${usersList.length} cadastrados)',
             actions: [IconButton(onPressed: () => _showUserSearch(context: context), icon: const Icon(Icons.search))],
@@ -169,7 +169,7 @@ class _UserScreenState extends State<UserScreen> {
       padding: const EdgeInsets.all(8),
       child: Column(
         children: [
-          CustomSwitch(
+          TebSwitch(
             context: context,
             value: _onlyActiverUsers,
             title: 'Somente usuários ativos',

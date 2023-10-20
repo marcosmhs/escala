@@ -1,7 +1,7 @@
-import 'package:escala/components/util/util.dart';
 import 'package:escala/features/institution/institution.dart';
 import 'package:escala/features/schedule/schedule_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:teb_package/util/teb_util.dart';
 // ignore: depend_on_referenced_packages
 
 class ScheduleDateUserList extends StatefulWidget {
@@ -25,7 +25,7 @@ class _ScheduleDateUserListState extends State<ScheduleDateUserList> {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Text(
-              'Escala do dia ${Util.dateTimeFormat(date: widget.scheduleDateUser.first.scheduleDates.first.date!)} ',
+              'Escala do dia ${TebUtil.dateTimeFormat(date: widget.scheduleDateUser.first.scheduleDates.first.date!)} ',
               style: TextStyle(
                 fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
                 color: Theme.of(context).primaryColor,
